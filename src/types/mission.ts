@@ -42,3 +42,28 @@ export interface DrillScenario {
   ambientTemp: number;
   recommendedSensor: string;
 }
+
+export interface CPPStatus {
+  algorithm: 'Boustrophedon CPP';
+  currentLeg: number;
+  totalLegs: number;
+  swathWidthMeters: number;
+  plannedWaypoints: [number, number][];
+  activeWaypointIndex: number;
+  coveragePercent: number;
+  isDeviatedForInvestigation: boolean;
+}
+
+export interface AccidentScenarioItem {
+  id: string;
+  title: string;
+  type: string;
+  severity: 'CRITICAL' | 'HIGH' | 'MEDIUM';
+  description: string;
+  expectedCasualties: number;
+  recommendedAction: string;
+  targetVisual: number;
+  targetThermal: number;
+  targetAcoustic: number;
+  targetLidar: number;
+}

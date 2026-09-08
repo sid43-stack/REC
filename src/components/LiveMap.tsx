@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
-import { Crosshair, Maximize2, Navigation, Globe, Flame, AlertOctagon } from 'lucide-react';
+import { Crosshair, Maximize2, Navigation, Globe, Flame, AlertOctagon, Grid } from 'lucide-react';
 import { Hotspot, SimulatorState } from '../simulation/droneSimulator';
 import { Incident } from '../types/incident';
 
@@ -13,9 +13,8 @@ export const LiveMap: React.FC<LiveMapProps> = ({ data, onSelectIncident }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const droneMarkerRef = useRef<L.Marker | null>(null);
-  const companionDroneMarkerRef = useRef<L.Marker | null>(null);
   const flightPolylineRef = useRef<L.Polyline | null>(null);
-  const companionPolylineRef = useRef<L.Polyline | null>(null);
+  const cppPolylineRef = useRef<L.Polyline | null>(null);
   const boundaryPolygonRef = useRef<L.Polygon | null>(null);
   const hotspotLayerRef = useRef<L.LayerGroup | null>(null);
   const incidentLayerRef = useRef<L.LayerGroup | null>(null);
@@ -27,17 +26,17 @@ export const LiveMap: React.FC<LiveMapProps> = ({ data, onSelectIncident }) => {
   const [mapMode, setMapMode] = useState<'tactical' | 'satellite'>('tactical');
   const [showHeatmap, setShowHeatmap] = useState<boolean>(false);
   const [showHazards, setShowHazards] = useState<boolean>(true);
+  const [showCPPGrid, setShowCPPGrid] = useState<boolean>(true);
 
   const { 
     telemetry, 
-    companionTelemetry, 
     flightPath, 
-    companionFlightPath, 
     searchSector, 
     hotspots, 
     incidents, 
     svlpEvaluation,
-    hazardZones 
+    hazardZones,
+    cppStatus 
   } = data;
 
   // Initialize Map once
@@ -71,25 +70,24 @@ export const LiveMap: React.FC<LiveMapProps> = ({ data, onSelectIncident }) => {
     }).addTo(map);
     boundaryPolygonRef.current = boundary;
 
-    // Flight path breadcrumb polyline for REC-01
+    // Planned Coverage Path Planning (CPP) Boustrophedon Grid Tracks
+    const cppLine = L.polyline(cppStatus?.plannedWaypoints || [], {
+      color: '#f59e0b',
+      weight: 1.5,
+      opacity: 0.45,
+      dashArray: '6, 8',
+      lineCap: 'round',
+    }).addTo(map);
+    cppPolylineRef.current = cppLine;
+
+    // Executed flight path breadcrumb polyline for Yellow Drone REC-01
     const flightLine = L.polyline(flightPath, {
-      color: '#fbbf24',
-      weight: 2,
-      opacity: 0.85,
-      dashArray: '2, 4',
+      color: '#eab308',
+      weight: 2.5,
+      opacity: 0.9,
       lineCap: 'round',
     }).addTo(map);
     flightPolylineRef.current = flightLine;
-
-    // Companion flight path for REC-02
-    const compLine = L.polyline(companionFlightPath || [], {
-      color: '#38bdf8',
-      weight: 1.5,
-      opacity: 0.6,
-      dashArray: '4, 4',
-      lineCap: 'round',
-    }).addTo(map);
-    companionPolylineRef.current = compLine;
 
     // Layer groups
     hotspotLayerRef.current = L.layerGroup().addTo(map);
@@ -97,7 +95,7 @@ export const LiveMap: React.FC<LiveMapProps> = ({ data, onSelectIncident }) => {
     hazardLayerRef.current = L.layerGroup().addTo(map);
     heatmapLayerRef.current = L.layerGroup().addTo(map);
 
-    // 1. Dynamic Tactical UAV REC-01 Icon
+    // Dynamic Tactical Yellow UAV REC-01 Icon
     const droneHtml = `
       <div class="relative flex items-center justify-center w-12 h-12">
         <div id="uav-fov-cone" class="absolute w-28 h-28 -top-8 -left-8 pointer-events-none transition-transform duration-300" style="transform: rotate(${telemetry.heading}deg);">
@@ -111,19 +109,19 @@ export const LiveMap: React.FC<LiveMapProps> = ({ data, onSelectIncident }) => {
             <polygon points="50,50 20,0 80,0" fill="url(#cone-gradient-amber)" />
           </svg>
         </div>
-        <div class="absolute inset-2 rounded-full border border-amber-400/50 animate-ping"></div>
-        <div id="uav-icon-body" class="relative w-8 h-8 rounded-full border-2 border-amber-400 bg-[#090b10] flex items-center justify-center shadow-[0_0_15px_#f59e0b] transition-transform duration-300" style="transform: rotate(${telemetry.heading}deg);">
-          <svg viewBox="0 0 24 24" class="w-5 h-5 text-amber-300" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="2" x2="12" y2="22" stroke="#f59e0b" stroke-width="2.5" />
-            <line x1="2" y1="12" x2="22" y2="12" stroke="#f59e0b" stroke-width="2.5" />
-            <circle cx="12" cy="12" r="3" fill="#f59e0b" />
-            <circle cx="12" cy="4" r="2" fill="#fbbf24" />
-            <circle cx="12" cy="20" r="2" fill="#fbbf24" />
-            <circle cx="4" cy="12" r="2" fill="#fbbf24" />
-            <circle cx="20" cy="12" r="2" fill="#fbbf24" />
+        <div class="absolute inset-2 rounded-full border border-yellow-400/60 animate-ping"></div>
+        <div id="uav-icon-body" class="relative w-8 h-8 rounded-full border-2 border-yellow-400 bg-[#090b10] flex items-center justify-center shadow-[0_0_18px_#eab308] transition-transform duration-300" style="transform: rotate(${telemetry.heading}deg);">
+          <svg viewBox="0 0 24 24" class="w-5 h-5 text-yellow-300" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="2" x2="12" y2="22" stroke="#eab308" stroke-width="2.5" />
+            <line x1="2" y1="12" x2="22" y2="12" stroke="#eab308" stroke-width="2.5" />
+            <circle cx="12" cy="12" r="3" fill="#eab308" />
+            <circle cx="12" cy="4" r="2" fill="#facc15" />
+            <circle cx="12" cy="20" r="2" fill="#facc15" />
+            <circle cx="4" cy="12" r="2" fill="#facc15" />
+            <circle cx="20" cy="12" r="2" fill="#facc15" />
           </svg>
         </div>
-        <div id="uav-alt-label" class="absolute -bottom-4 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded bg-black/85 border border-amber-500/40 text-[9px] font-mono text-amber-300 whitespace-nowrap shadow">
+        <div id="uav-alt-label" class="absolute -bottom-4 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded bg-black/90 border border-yellow-500/60 text-[9px] font-mono text-yellow-300 whitespace-nowrap shadow font-bold">
           REC-01 • ${telemetry.altitude.toFixed(0)}m
         </div>
       </div>
@@ -141,37 +139,6 @@ export const LiveMap: React.FC<LiveMapProps> = ({ data, onSelectIncident }) => {
       zIndexOffset: 1000,
     }).addTo(map);
     droneMarkerRef.current = marker;
-
-    // 2. Swarm Companion Drone REC-02 Marker
-    if (companionTelemetry) {
-      const compDroneHtml = `
-        <div class="relative flex items-center justify-center w-10 h-10">
-          <div id="uav2-icon-body" class="relative w-6 h-6 rounded-full border border-sky-400 bg-[#090b10] flex items-center justify-center shadow-[0_0_12px_#38bdf8] transition-transform duration-300" style="transform: rotate(${companionTelemetry.heading}deg);">
-            <svg viewBox="0 0 24 24" class="w-4 h-4 text-sky-300" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="12" y1="2" x2="12" y2="22" stroke="#38bdf8" stroke-width="2" />
-              <line x1="2" y1="12" x2="22" y2="12" stroke="#38bdf8" stroke-width="2" />
-              <circle cx="12" cy="12" r="2.5" fill="#38bdf8" />
-            </svg>
-          </div>
-          <div class="absolute -bottom-3.5 left-1/2 -translate-x-1/2 px-1 py-0.1 rounded bg-black/85 border border-sky-500/40 text-[8px] font-mono text-sky-300 whitespace-nowrap shadow">
-            REC-02 • RELIEF
-          </div>
-        </div>
-      `;
-
-      const compIcon = L.divIcon({
-        className: 'companion-drone-marker',
-        html: compDroneHtml,
-        iconSize: [40, 40],
-        iconAnchor: [20, 20],
-      });
-
-      const compMarker = L.marker([companionTelemetry.latitude, companionTelemetry.longitude], {
-        icon: compIcon,
-        zIndexOffset: 900,
-      }).addTo(map);
-      companionDroneMarkerRef.current = compMarker;
-    }
 
     mapInstanceRef.current = map;
 
@@ -204,7 +171,18 @@ export const LiveMap: React.FC<LiveMapProps> = ({ data, onSelectIncident }) => {
     }
   };
 
-  // Update drone positions, headings and flight paths continuously
+  // Update CPP Planned Grid Tracks when sector/scenario changes
+  useEffect(() => {
+    if (!cppPolylineRef.current) return;
+    if (showCPPGrid && cppStatus?.plannedWaypoints) {
+      cppPolylineRef.current.setLatLngs(cppStatus.plannedWaypoints);
+      cppPolylineRef.current.setStyle({ opacity: 0.45 });
+    } else {
+      cppPolylineRef.current.setStyle({ opacity: 0 });
+    }
+  }, [cppStatus?.plannedWaypoints, showCPPGrid]);
+
+  // Update drone position, heading and flight path
   useEffect(() => {
     if (!mapInstanceRef.current || !droneMarkerRef.current || !flightPolylineRef.current) return;
 
@@ -221,18 +199,7 @@ export const LiveMap: React.FC<LiveMapProps> = ({ data, onSelectIncident }) => {
     }
 
     flightPolylineRef.current.setLatLngs(flightPath);
-
-    // Update REC-02 companion position
-    if (companionTelemetry && companionDroneMarkerRef.current && companionPolylineRef.current) {
-      companionDroneMarkerRef.current.setLatLng([companionTelemetry.latitude, companionTelemetry.longitude]);
-      const compElement = companionDroneMarkerRef.current.getElement();
-      if (compElement) {
-        const compBody = compElement.querySelector('#uav2-icon-body') as HTMLElement | null;
-        if (compBody) compBody.style.transform = `rotate(${companionTelemetry.heading}deg)`;
-      }
-      if (companionFlightPath) companionPolylineRef.current.setLatLngs(companionFlightPath);
-    }
-  }, [telemetry, companionTelemetry, flightPath, companionFlightPath]);
+  }, [telemetry, flightPath]);
 
   // Render Hazard Zones
   useEffect(() => {
@@ -273,7 +240,6 @@ export const LiveMap: React.FC<LiveMapProps> = ({ data, onSelectIncident }) => {
     if (!showHeatmap) return;
 
     hotspots.forEach((h) => {
-      // Outer thermal spread
       const outerCircle = L.circle([h.latitude, h.longitude], {
         radius: 65,
         color: '#f97316',
@@ -281,7 +247,6 @@ export const LiveMap: React.FC<LiveMapProps> = ({ data, onSelectIncident }) => {
         fillColor: '#f97316',
         fillOpacity: 0.18,
       });
-      // Inner thermal core
       const innerCircle = L.circle([h.latitude, h.longitude], {
         radius: 25,
         color: '#ef4444',
@@ -353,50 +318,64 @@ export const LiveMap: React.FC<LiveMapProps> = ({ data, onSelectIncident }) => {
       const marker = L.marker([h.latitude, h.longitude], { icon });
       marker.bindPopup(`
         <div class="p-2 font-mono text-xs bg-[#0b0e14] text-slate-200 border border-amber-500/40 rounded">
-          <div class="text-amber-400 font-bold mb-1">SUSPECT ANOMALY: ${h.id}</div>
-          <div class="text-slate-300 text-[11px]">${h.description}</div>
-          <div class="mt-1 text-slate-400 text-[10px]">COORDS: ${h.latitude.toFixed(4)}, ${h.longitude.toFixed(4)}</div>
+          <div class="text-amber-400 font-bold mb-1">CRISIS ACCIDENT TARGET: ${h.id}</div>
+          <div class="text-slate-200 font-semibold mb-0.5">${h.title}</div>
+          <div class="text-slate-400 text-[11px] mb-1">${h.description}</div>
+          <div class="text-rose-400 text-[10px] font-bold">TYPE: ${h.accidentType} • CASUALTIES: ${h.victimCount}</div>
+          <div class="mt-1 text-slate-500 text-[10px]">GPS: ${h.latitude.toFixed(5)}, ${h.longitude.toFixed(5)}</div>
         </div>
       `);
+
       hotspotLayerRef.current?.addLayer(marker);
     });
 
-    // Render Confirmed Incidents (Red critical radar circles)
+    // Render Confirmed Incidents (Pulsing high-visibility tactical pins)
     incidents.forEach((inc: Incident) => {
-      const isCritical = inc.priority === 'CRITICAL' || inc.status === 'HIGH_PRIORITY';
-      const color = inc.status === 'RESOLVED' ? '#10b981' : '#f43f5e';
+      const isCritical = inc.priority === 'CRITICAL';
+      const isResolved = inc.status === 'RESOLVED';
+      const pulseColor = isResolved ? '#10b981' : isCritical ? '#f43f5e' : '#f59e0b';
 
       const incidentHtml = `
-        <div class="relative cursor-pointer">
-          ${isCritical && inc.status !== 'RESOLVED' ? '<div class="absolute -inset-3 rounded-full bg-rose-600/30 animate-ping"></div>' : ''}
-          <div class="w-7 h-7 rounded-full border-2 border-[${color}] bg-[#14080b] flex items-center justify-center text-[${color}] text-[11px] font-mono font-bold shadow-[0_0_18px_rgba(244,63,94,0.8)]">
-            ${inc.status === 'RESOLVED' ? '✓' : '★'}
+        <div class="relative group cursor-pointer">
+          <div class="relative w-8 h-8 rounded-full border-2 flex items-center justify-center shadow-lg transition-transform hover:scale-110" style="border-color: ${pulseColor}; background-color: rgba(11, 14, 20, 0.95);">
+            <svg viewBox="0 0 24 24" class="w-4 h-4" style="color: ${pulseColor};" fill="currentColor">
+              <path d="M12 2L1 21h22L12 2zm0 3.5L20.3 19H3.7L12 5.5zM11 10v4h2v-4h-2zm0 6v2h2v-2h-2z"/>
+            </svg>
+            <div class="absolute -top-1 -right-1 px-1 rounded-full text-[8px] font-extrabold font-mono text-black shadow" style="background-color: ${pulseColor};">
+              ${inc.victimCount || 1}
+            </div>
           </div>
+          ${!isResolved ? `<div class="absolute -inset-1 rounded-full border animate-ping pointer-events-none" style="border-color: ${pulseColor}; opacity: 0.6;"></div>` : ''}
         </div>
       `;
 
       const icon = L.divIcon({
         className: 'custom-incident-icon',
         html: incidentHtml,
-        iconSize: [28, 28],
-        iconAnchor: [14, 14],
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
       });
 
-      const marker = L.marker([inc.latitude, inc.longitude], { icon });
+      const marker = L.marker([inc.latitude, inc.longitude], {
+        icon,
+        zIndexOffset: isCritical ? 950 : 850,
+      });
+
       marker.bindPopup(`
-        <div class="p-2.5 font-mono text-xs bg-[#0f121a] text-slate-200 border border-rose-500/60 rounded shadow-xl min-w-[200px]">
-          <div class="flex items-center justify-between border-b border-rose-500/30 pb-1 mb-1.5">
-            <span class="text-rose-400 font-bold">${inc.incidentId}</span>
-            <span class="px-1.5 py-0.2 text-[10px] rounded bg-rose-500/20 text-rose-300 font-bold">${inc.priority}</span>
+        <div class="p-2.5 font-mono text-xs bg-[#0b0e14] text-slate-200 border border-white/20 rounded shadow-xl min-w-[200px]">
+          <div class="flex items-center justify-between gap-2 mb-1 border-b border-white/10 pb-1">
+            <span class="font-bold text-amber-400">${inc.incidentId}</span>
+            <span class="px-1.5 py-0.2 rounded text-[9px] font-bold ${isCritical ? 'bg-rose-600 text-white' : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'}">
+              ${inc.priority}
+            </span>
           </div>
-          ${inc.title ? `<div class="text-[11px] font-bold text-amber-300 mb-1 leading-snug">${inc.title}</div>` : ''}
-          ${inc.victimCount ? `<div class="text-[10px] text-amber-400/90 font-mono mb-1">⚠ Casualties: ${inc.victimCount} ${inc.victimCount === 1 ? 'victim' : 'victims'}</div>` : ''}
-          <div class="text-[11px] text-slate-300 mb-1">Survivor Confidence: <strong class="text-rose-400">${Math.round(inc.confidence * 100)}%</strong></div>
-          <div class="text-[10px] text-slate-400 space-y-0.5 mb-2">
-            <div>RGB Visual: ${(inc.evidence.visual * 100).toFixed(0)}%</div>
-            <div>IR Thermal: ${(inc.evidence.thermal * 100).toFixed(0)}%</div>
-            <div>Acoustic: ${(inc.evidence.acoustic * 100).toFixed(0)}%</div>
-            ${inc.evidence.lidar ? `<div>LiDAR 3D Void: ${(inc.evidence.lidar * 100).toFixed(0)}%</div>` : ''}
+          <div class="font-bold text-slate-100 mb-1">${inc.title}</div>
+          <div class="text-[11px] text-slate-300 mb-1.5">${inc.notes || inc.recommendedAction}</div>
+          <div class="text-[10px] text-amber-300 mb-0.5">
+            CASUALTIES DETECTED: <strong class="text-white">${inc.victimCount || 1}</strong>
+          </div>
+          <div class="text-[10px] text-slate-400 mb-2">
+            REC-SVLP CONFIDENCE: <strong class="text-emerald-400">${Math.round(inc.confidence * 100)}%</strong>
           </div>
           <div class="text-[10px] text-slate-500 mb-2">COORDS: ${inc.latitude.toFixed(5)}, ${inc.longitude.toFixed(5)}</div>
           ${inc.status === 'RESOLVED' ? '<div class="text-emerald-400 font-bold text-center py-0.5 bg-emerald-950/40 rounded border border-emerald-500/40">EVACUATED / RESOLVED</div>' : ''}
@@ -427,9 +406,9 @@ export const LiveMap: React.FC<LiveMapProps> = ({ data, onSelectIncident }) => {
 
   return (
     <div className="relative w-full h-full bg-[#080a0f] rounded-lg border border-white/10 overflow-hidden flex flex-col tactical-corner">
-      {/* Tactical Map HUD Header Bar - Pinned inside the top of the map, full-width, non-overlapping with z-[2000] */}
-      <div className="absolute top-0 left-0 right-0 z-[2000] bg-[#0c0f17]/95 backdrop-blur-md border-b border-white/10 px-3 py-1.5 flex items-center justify-between gap-3 shadow-lg pointer-events-none">
-        {/* Left: Surveillance Grid Info */}
+      {/* Tactical Map HUD Header Bar - z-20 so it never overlaps header dropdowns */}
+      <div className="absolute top-0 left-0 right-0 z-20 bg-[#0c0f17]/95 backdrop-blur-md border-b border-white/10 px-3 py-1.5 flex items-center justify-between gap-3 shadow-lg pointer-events-none">
+        {/* Left: Surveillance Grid Info & CPP Status */}
         <div className="pointer-events-auto flex items-center space-x-2 min-w-0">
           <Navigation className="w-3.5 h-3.5 text-amber-400 shrink-0" />
           <span className="text-xs font-mono font-semibold tracking-wider text-slate-200 truncate">
@@ -437,12 +416,30 @@ export const LiveMap: React.FC<LiveMapProps> = ({ data, onSelectIncident }) => {
           </span>
           <span className="text-slate-600 hidden sm:inline shrink-0">•</span>
           <span className="text-[11px] font-mono text-slate-400 hidden sm:inline shrink-0">
-            COVERAGE: <strong className="text-slate-200">{searchSector.areaCoveredPercent}%</strong>
+            ALGORITHM: <strong className="text-amber-300 font-bold">Boustrophedon CPP</strong> (Leg {cppStatus?.currentLeg || 1}/{cppStatus?.totalLegs || 8})
+          </span>
+          <span className="text-slate-600 hidden md:inline shrink-0">•</span>
+          <span className="text-[11px] font-mono text-slate-400 hidden md:inline shrink-0">
+            COVERAGE: <strong className="text-emerald-400">{cppStatus?.coveragePercent || searchSector.areaCoveredPercent}%</strong>
           </span>
         </div>
 
         {/* Right: Map Action Controls */}
         <div className="pointer-events-auto flex items-center space-x-1 shrink-0">
+          {/* CPP Grid Toggle */}
+          <button
+            onClick={() => setShowCPPGrid(!showCPPGrid)}
+            className={`flex items-center space-x-1 px-2 py-0.5 rounded border text-xs font-mono transition ${
+              showCPPGrid
+                ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 font-bold shadow-[0_0_8px_rgba(245,158,11,0.3)]'
+                : 'bg-[#141824]/90 text-slate-400 border-white/10 hover:text-amber-300 hover:border-amber-500/40'
+            }`}
+            title="Toggle Planned Boustrophedon CPP Grid Survey Tracks"
+          >
+            <Grid className="w-3.5 h-3.5 text-amber-400" />
+            <span className="hidden sm:inline">CPP GRID</span>
+          </button>
+
           {/* Thermal Heatmap Toggle */}
           <button
             onClick={() => setShowHeatmap(!showHeatmap)}
@@ -486,7 +483,7 @@ export const LiveMap: React.FC<LiveMapProps> = ({ data, onSelectIncident }) => {
           <button
             onClick={recenterOnDrone}
             className="p-1 rounded bg-[#141824]/90 border border-white/10 text-slate-300 hover:text-amber-300 hover:border-amber-500/40 shadow transition"
-            title="Center on REC-01 Drone"
+            title="Center on Yellow REC-01 Drone"
           >
             <Crosshair className="w-3.5 h-3.5" />
           </button>
@@ -504,14 +501,14 @@ export const LiveMap: React.FC<LiveMapProps> = ({ data, onSelectIncident }) => {
       <div ref={mapContainerRef} className="w-full h-full flex-1 z-10" />
 
       {/* Map Legend Overlay in bottom-left */}
-      <div className="absolute bottom-2.5 left-2.5 z-[2000] pointer-events-none px-2.5 py-1 rounded bg-[#090b10]/95 backdrop-blur border border-white/10 text-[10px] font-mono flex items-center space-x-3 text-slate-400 shadow">
+      <div className="absolute bottom-2.5 left-2.5 z-20 pointer-events-none px-2.5 py-1 rounded bg-[#090b10]/95 backdrop-blur border border-white/10 text-[10px] font-mono flex items-center space-x-3 text-slate-400 shadow">
         <div className="flex items-center space-x-1">
-          <span className="w-2 h-2 rounded-full bg-amber-400" />
-          <span>REC-01 UAV</span>
+          <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 shadow-[0_0_6px_#eab308]" />
+          <span className="text-yellow-300 font-bold">REC-01 UAV</span>
         </div>
         <div className="flex items-center space-x-1">
-          <span className="w-2 h-2 rounded-full bg-sky-400" />
-          <span>REC-02 RELIEF</span>
+          <span className="w-3.5 h-0.5 bg-amber-400 border border-dashed" />
+          <span>CPP Survey Grid</span>
         </div>
         <div className="flex items-center space-x-1">
           <span className="w-2 h-2 rounded-full bg-rose-500" />

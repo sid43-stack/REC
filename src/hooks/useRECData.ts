@@ -16,11 +16,10 @@ export function useRECData(): {
       setData({
         ...state,
         telemetry: { ...state.telemetry },
-        companionTelemetry: { ...state.companionTelemetry },
         sensorEvidence: { ...state.sensorEvidence },
         svlpEvaluation: { ...state.svlpEvaluation },
         flightPath: [...state.flightPath],
-        companionFlightPath: [...state.companionFlightPath],
+        cppStatus: { ...state.cppStatus },
         incidents: [...state.incidents],
         hotspots: [...state.hotspots],
       });

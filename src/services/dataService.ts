@@ -13,7 +13,7 @@ export interface IRECDataService {
   simulateAccident(accidentTitle?: string): void;
   runAutoDemo(): void;
   setScenario(scenarioId: DrillScenarioId): void;
-  setActiveDrone(droneId: 'REC-01' | 'REC-02'): void;
+  setActiveDrone(droneId: 'REC-01'): void;
   exportSITREP(): string;
   acknowledgeIncident(id: string): void;
   resolveIncident(id: string): void;
@@ -47,11 +47,11 @@ class RECDataService implements IRECDataService {
   }
 
   public injectAnomaly(accidentTitle?: string): void {
-    droneSimulator.injectAnomaly(accidentTitle);
+    droneSimulator.simulateAccident(accidentTitle);
   }
 
   public simulateAccident(accidentTitle?: string): void {
-    droneSimulator.injectAnomaly(accidentTitle);
+    droneSimulator.simulateAccident(accidentTitle);
   }
 
   public runAutoDemo(): void {
@@ -62,8 +62,8 @@ class RECDataService implements IRECDataService {
     droneSimulator.setScenario(scenarioId);
   }
 
-  public setActiveDrone(droneId: 'REC-01' | 'REC-02'): void {
-    droneSimulator.setActiveDrone(droneId);
+  public setActiveDrone(_droneId: 'REC-01'): void {
+    // Single drone REC-01 active
   }
 
   public exportSITREP(): string {

@@ -110,16 +110,18 @@ export const App: React.FC = () => {
 
       {/* Content wrapper */}
       <div className="relative z-10 flex flex-col h-full">
-        {/* Top System Header */}
-        <Header
-          data={data}
-          service={service}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          onOpenGimbal={() => setIsGimbalOpen(true)}
-          soundEnabled={soundEnabled}
-          setSoundEnabled={setSoundEnabled}
-        />
+        {/* Top System Header - high stacking context so dropdowns never overlap with map */}
+        <div className="relative z-50 shrink-0">
+          <Header
+            data={data}
+            service={service}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            onOpenGimbal={() => setIsGimbalOpen(true)}
+            soundEnabled={soundEnabled}
+            setSoundEnabled={setSoundEnabled}
+          />
+        </div>
 
         {/* Flashing Alert Banner when in Critical Survivor Alert state */}
         {isCriticalAlert && (
@@ -138,7 +140,7 @@ export const App: React.FC = () => {
         )}
 
         {/* Main Unified Viewport Dashboard (Zero-scroll, 100% viewport fit) */}
-        <main className="flex-1 min-h-0 p-2 sm:p-2.5 overflow-hidden flex flex-col">
+        <main className="relative z-10 flex-1 min-h-0 p-2 sm:p-2.5 overflow-hidden flex flex-col">
           {activeTab === 'command' && (
             <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-2.5">
               {/* Left Column: Live Map + Sensor Suite (7 cols on lg and xl) */}

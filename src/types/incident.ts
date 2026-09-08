@@ -5,6 +5,7 @@ export interface IncidentEvidence {
   visual: number;
   thermal: number;
   acoustic: number;
+  lidar?: number;
 }
 
 export interface Incident {
@@ -19,4 +20,5 @@ export interface Incident {
   recommendedAction: string;
   notes?: string;
   acknowledged: boolean;
+  hazardZoneRef?: string;
 }

@@ -256,10 +256,10 @@ export const SVLPIntelligencePanel: React.FC<SVLPIntelligencePanelProps> = ({
         </div>
       </div>
 
-      {/* Tri-Sensor Evidence Breakdown */}
-      <div className="grid grid-cols-3 gap-1.5">
+      {/* Multi-Sensor Corroboration Breakdown (4 Modalities) */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
         {/* RGB Visual Evidence */}
-        <div className="bg-[#090b10] p-2 rounded border border-white/5 flex flex-col justify-between">
+        <div className="bg-[#090b10] p-1.5 rounded border border-white/5 flex flex-col justify-between">
           <div className="flex items-center justify-between text-xs font-mono mb-1">
             <span className="flex items-center space-x-1 text-slate-300">
               <Camera className="w-3 h-3 text-amber-400" />
@@ -279,7 +279,7 @@ export const SVLPIntelligencePanel: React.FC<SVLPIntelligencePanelProps> = ({
         </div>
 
         {/* IR Thermal Evidence */}
-        <div className="bg-[#090b10] p-2 rounded border border-white/5 flex flex-col justify-between">
+        <div className="bg-[#090b10] p-1.5 rounded border border-white/5 flex flex-col justify-between">
           <div className="flex items-center justify-between text-xs font-mono mb-1">
             <span className="flex items-center space-x-1 text-slate-300">
               <Flame className="w-3 h-3 text-rose-400" />
@@ -299,7 +299,7 @@ export const SVLPIntelligencePanel: React.FC<SVLPIntelligencePanelProps> = ({
         </div>
 
         {/* Acoustic Resonance Evidence */}
-        <div className="bg-[#090b10] p-2 rounded border border-white/5 flex flex-col justify-between">
+        <div className="bg-[#090b10] p-1.5 rounded border border-white/5 flex flex-col justify-between">
           <div className="flex items-center justify-between text-xs font-mono mb-1">
             <span className="flex items-center space-x-1 text-slate-300">
               <Volume2 className="w-3 h-3 text-emerald-400" />
@@ -315,6 +315,26 @@ export const SVLPIntelligencePanel: React.FC<SVLPIntelligencePanelProps> = ({
           </div>
           <div className="text-[9px] font-mono text-slate-400 flex items-center justify-between">
             <span>SPL: <strong className="text-emerald-300">{sensorEvidence.acousticDecibels} dB</strong></span>
+          </div>
+        </div>
+
+        {/* LiDAR 3D Void Evidence */}
+        <div className="bg-[#090b10] p-1.5 rounded border border-white/5 flex flex-col justify-between">
+          <div className="flex items-center justify-between text-xs font-mono mb-1">
+            <span className="flex items-center space-x-1 text-slate-300">
+              <Activity className="w-3 h-3 text-sky-400" />
+              <span>LiDAR 3D</span>
+            </span>
+            <span className="font-bold text-sky-300">{((sensorEvidence.lidar || 0.85) * 100).toFixed(0)}%</span>
+          </div>
+          <div className="w-full h-1.5 bg-black rounded-full overflow-hidden mb-1">
+            <div
+              className="h-full bg-gradient-to-r from-sky-600 to-sky-400 transition-all duration-300 rounded-full"
+              style={{ width: `${(sensorEvidence.lidar || 0.85) * 100}%` }}
+            />
+          </div>
+          <div className="text-[9px] font-mono text-slate-400 flex items-center justify-between">
+            <span>Void: <strong className="text-sky-300">{sensorEvidence.lidarVoidVolumeM3 || 0}m³</strong></span>
           </div>
         </div>
       </div>

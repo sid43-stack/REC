@@ -1,5 +1,5 @@
 import { SVLPState, SVLPWeights } from '../types/svlp';
-import { MissionMode } from '../types/mission';
+import { DrillScenarioId, MissionMode } from '../types/mission';
 import { droneSimulator, SimulatorState } from '../simulation/droneSimulator';
 
 export interface IRECDataService {
@@ -10,6 +10,10 @@ export interface IRECDataService {
   setSimulationSpeed(speed: number): void;
   setMissionMode(mode: MissionMode): void;
   injectAnomaly(): void;
+  runAutoDemo(): void;
+  setScenario(scenarioId: DrillScenarioId): void;
+  setActiveDrone(droneId: 'REC-01' | 'REC-02'): void;
+  exportSITREP(): string;
   acknowledgeIncident(id: string): void;
   resolveIncident(id: string): void;
   updateSVLPWeights(weights: Partial<SVLPWeights>): void;
@@ -45,6 +49,22 @@ class RECDataService implements IRECDataService {
     droneSimulator.injectAnomaly();
   }
 
+  public runAutoDemo(): void {
+    droneSimulator.runAutoDemo();
+  }
+
+  public setScenario(scenarioId: DrillScenarioId): void {
+    droneSimulator.setScenario(scenarioId);
+  }
+
+  public setActiveDrone(droneId: 'REC-01' | 'REC-02'): void {
+    droneSimulator.setActiveDrone(droneId);
+  }
+
+  public exportSITREP(): string {
+    return droneSimulator.exportSITREP();
+  }
+
   public acknowledgeIncident(id: string): void {
     droneSimulator.acknowledgeIncident(id);
   }
@@ -58,7 +78,6 @@ class RECDataService implements IRECDataService {
   }
 
   public triggerManualState(state: SVLPState): void {
-    // Allows testing specific state overrides in SVLP
     droneSimulator.getSVLPEngine().evaluate(
       { visual: 0.8, thermal: 0.85, acoustic: 0.75, timestamp: new Date().toISOString() },
       { latitude: 28.6148, longitude: 77.2092 },

@@ -1,5 +1,5 @@
 import { Incident } from '../types/incident';
-import { MissionEvent, MissionMode, MissionStatus, SearchSector } from '../types/mission';
+import { DrillScenario, DrillScenarioId, HazardZone, MissionEvent, MissionMode, MissionStatus, SearchSector } from '../types/mission';
 import { SensorEvidence, SensorStatus } from '../types/sensors';
 import { SVLPEvaluation, SVLPState } from '../types/svlp';
 import { Telemetry } from '../types/telemetry';
@@ -40,6 +40,7 @@ export interface Hotspot {
   targetVisual: number;
   targetThermal: number;
   targetAcoustic: number;
+  targetLidar?: number;
   discovered: boolean;
 }
 
@@ -48,39 +49,108 @@ const PRESET_HOTSPOTS: Hotspot[] = [
     id: 'HOT-01',
     latitude: 28.6148,
     longitude: 77.2092,
-    description: 'Collapsed structure with trapped individual beneath rubble',
-    targetVisual: 0.74,
-    targetThermal: 0.92,
+    description: 'Collapsed structure with trapped individual beneath rubble slab',
+    targetVisual: 0.76,
+    targetThermal: 0.93,
     targetAcoustic: 0.84,
+    targetLidar: 0.88,
     discovered: false,
   },
   {
     id: 'HOT-02',
     latitude: 28.6125,
     longitude: 77.2105,
-    description: 'Partially submerged basement cavity with faint distress tap',
-    targetVisual: 0.62,
-    targetThermal: 0.85,
-    targetAcoustic: 0.78,
+    description: 'Partially submerged basement cavity with faint distress tapping',
+    targetVisual: 0.65,
+    targetThermal: 0.86,
+    targetAcoustic: 0.80,
+    targetLidar: 0.78,
     discovered: false,
   },
 ];
 
+export const HAZARD_ZONES: HazardZone[] = [
+  {
+    id: 'HAZ-01',
+    name: 'Unstable Multi-Story Façade',
+    type: 'STRUCTURAL_COLLAPSE',
+    color: '#f43f5e',
+    bounds: [
+      [28.6160, 77.2065],
+      [28.6166, 77.2082],
+      [28.6152, 77.2086],
+      [28.6148, 77.2068],
+    ],
+    severity: 'HIGH',
+    description: 'Cracked load-bearing columns; secondary collapse risk. Keep drone altitude >25m AGL.',
+  },
+  {
+    id: 'HAZ-02',
+    name: 'Sub-surface Ruptured Gas Pocket',
+    type: 'TOXIC_PLUME',
+    color: '#f97316',
+    bounds: [
+      [28.6130, 77.2098],
+      [28.6138, 77.2118],
+      [28.6120, 77.2122],
+      [28.6114, 77.2104],
+    ],
+    severity: 'EXTREME',
+    description: 'VOC volatile organic sensor spike. Flammable vapor dispersion towards south-east.',
+  },
+];
+
+export const DRILL_SCENARIOS: Record<DrillScenarioId, DrillScenario> = {
+  EARTHQUAKE_RUBBLE: {
+    id: 'EARTHQUAKE_RUBBLE',
+    title: 'Earthquake Structural Collapse',
+    subtitle: 'Urban Debris Cavity Search • Sector Alpha',
+    description: 'High-density reinforced concrete rubble with sub-surface voids and trapped survivors.',
+    windSpeed: '3.2 m/s NW',
+    ambientTemp: 18.5,
+    recommendedSensor: 'FLIR Thermal + LiDAR 3D Void',
+  },
+  FLASH_FLOOD_NIGHT: {
+    id: 'FLASH_FLOOD_NIGHT',
+    title: 'Flash Flood Night Rescue',
+    subtitle: 'Riverbank Inundation & Debris Drift • Sector Beta',
+    description: 'Rapidly rising water table, submerged vehicles, night-time low-light operations.',
+    windSpeed: '8.4 m/s gusts',
+    ambientTemp: 14.0,
+    recommendedSensor: 'NVG Night Vision + FLIR White-Hot',
+  },
+  CHEMICAL_EXPLOSION: {
+    id: 'CHEMICAL_EXPLOSION',
+    title: 'Industrial Chemical Incident',
+    subtitle: 'Toxic Plume Perimeter & Worker Triage • Sector Gamma',
+    description: 'Hazardous material breach with dynamic toxic exclusion zone and acoustic distress signals.',
+    windSpeed: '5.1 m/s E',
+    ambientTemp: 22.0,
+    recommendedSensor: 'Acoustic Array + Thermal Hotspot',
+  },
+};
+
 export interface SimulatorState {
   telemetry: Telemetry;
+  companionTelemetry: Telemetry;
+  activeDroneId: 'REC-01' | 'REC-02';
   sensorStatus: SensorStatus;
   sensorEvidence: SensorEvidence;
   svlpEvaluation: SVLPEvaluation;
   incidents: Incident[];
   missionEvents: MissionEvent[];
   flightPath: [number, number][];
+  companionFlightPath: [number, number][];
   searchSector: SearchSector;
+  hazardZones: HazardZone[];
+  activeScenario: DrillScenarioId;
   missionStatus: MissionStatus;
   missionMode: MissionMode;
   missionTimeSeconds: number;
   hotspots: Hotspot[];
   simulationSpeed: number;
   isPaused: boolean;
+  isAutoDemoRunning: boolean;
 }
 
 type Subscriber = (state: SimulatorState) => void;
@@ -90,6 +160,7 @@ export class DroneSimulator {
   private state: SimulatorState;
   private subscribers: Set<Subscriber> = new Set();
   private timer: number | null = null;
+  private autoDemoTimer: number | null = null;
   private currentWaypointIndex: number = 0;
   private tickIntervalMs: number = 1000;
   private incidentCounter: number = 1;
@@ -119,10 +190,30 @@ export class DroneSimulator {
         satellites: 18,
         signalStrength: 96,
       },
+      companionTelemetry: {
+        timestamp: new Date().toISOString(),
+        droneId: 'REC-02',
+        latitude: initialLat + 0.0018,
+        longitude: initialLng + 0.0015,
+        altitude: 45.0,
+        speed: 6.2,
+        battery: 94,
+        batteryVoltage: 23.2,
+        gpsStatus: 'LOCKED',
+        connection: 'CONNECTED',
+        heading: 180,
+        pitch: 0.8,
+        roll: 0.2,
+        yaw: 179.5,
+        satellites: 19,
+        signalStrength: 98,
+      },
+      activeDroneId: 'REC-01',
       sensorStatus: {
         rgbCamera: 'ACTIVE',
         thermalSensor: 'ACTIVE',
         acousticSensor: 'ACTIVE',
+        lidar: 'ACTIVE',
         gps: 'ACTIVE',
         imu: 'ACTIVE',
       },
@@ -130,13 +221,17 @@ export class DroneSimulator {
         visual: 0.12,
         thermal: 0.18,
         acoustic: 0.08,
+        lidar: 0.15,
         timestamp: new Date().toISOString(),
         visualObjectLabel: 'Clear terrain / rubble debris',
         visualConfidence: 0.12,
         thermalHotspotTemp: 19.4,
-        thermalAmbientTemp: 18.2,
+        thermalAmbientTemp: 18.5,
         acousticDecibels: 42,
         acousticFrequency: 140,
+        lidarDepthM: 35.2,
+        lidarVoidVolumeM3: 0.0,
+        lidarStructuralIntegrity: 'CLEAR / NO VOID',
       },
       svlpEvaluation: {
         state: 'SEARCH',
@@ -157,18 +252,22 @@ export class DroneSimulator {
           id: 'EVT-002',
           timestamp: new Date().toISOString(),
           type: 'SUCCESS',
-          title: 'Sensors Calibrated',
-          details: 'RGB, FLIR Thermal LWIR, and MEMS Acoustic array operational.',
+          title: 'Sensor Suite Calibrated',
+          details: 'RGB 4K, FLIR Thermal LWIR, LiDAR 3D Void Depth, and MEMS Acoustic Array operational.',
         },
       ],
       flightPath: [[initialLat, initialLng]],
+      companionFlightPath: [[initialLat + 0.0018, initialLng + 0.0015]],
       searchSector: { ...DEFAULT_SEARCH_SECTOR },
+      hazardZones: [...HAZARD_ZONES],
+      activeScenario: 'EARTHQUAKE_RUBBLE',
       missionStatus: 'ACTIVE',
       missionMode: 'AUTONOMOUS_SEARCH',
       missionTimeSeconds: 0,
       hotspots: JSON.parse(JSON.stringify(PRESET_HOTSPOTS)),
       simulationSpeed: 1,
       isPaused: false,
+      isAutoDemoRunning: false,
     };
   }
 
@@ -191,6 +290,76 @@ export class DroneSimulator {
     this.state.isPaused = false;
     this.state.missionStatus = 'ACTIVE';
     this.start();
+    this.notify();
+  }
+
+  public setActiveDrone(droneId: 'REC-01' | 'REC-02'): void {
+    this.state.activeDroneId = droneId;
+    this.addEvent({
+      id: `EVT-DRONE-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      type: 'INFO',
+      title: `Swarm Telemetry Switched: ${droneId}`,
+      details: `Active ground telemetry display reassigned to ${droneId} (${droneId === 'REC-01' ? 'Lead Scout' : 'Relief Payload Carrier'}).`,
+    });
+    this.notify();
+  }
+
+  public setScenario(scenarioId: DrillScenarioId): void {
+    this.state.activeScenario = scenarioId;
+    const scenario = DRILL_SCENARIOS[scenarioId];
+
+    if (scenarioId === 'FLASH_FLOOD_NIGHT') {
+      this.state.searchSector.name = 'Sector Beta — Riverbank Inundation';
+      this.state.sensorEvidence.thermalAmbientTemp = 14.0;
+    } else if (scenarioId === 'CHEMICAL_EXPLOSION') {
+      this.state.searchSector.name = 'Sector Gamma — Industrial Complex Perimeter';
+      this.state.sensorEvidence.thermalAmbientTemp = 22.0;
+    } else {
+      this.state.searchSector.name = DEFAULT_SEARCH_SECTOR.name;
+      this.state.sensorEvidence.thermalAmbientTemp = 18.5;
+    }
+
+    this.addEvent({
+      id: `EVT-SCENARIO-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      type: 'WARNING',
+      title: `Scenario Changed: ${scenario.title}`,
+      details: `${scenario.description} Wind: ${scenario.windSpeed}. Recommended: ${scenario.recommendedSensor}.`,
+    });
+
+    this.notify();
+  }
+
+  public runAutoDemo(): void {
+    if (this.state.isAutoDemoRunning) return;
+    this.state.isAutoDemoRunning = true;
+
+    // 1. Resume simulation and set speed to 2x
+    this.resume();
+    this.setSpeed(2);
+
+    // 2. Inject high-confidence drill anomaly immediately forward
+    this.injectAnomaly();
+
+    this.addEvent({
+      id: `EVT-DEMO-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      type: 'INFO',
+      title: 'JUDGE AUTO-DEMO ENGAGED',
+      details: 'Automated 15s demonstration of full REC-SVLP multi-sensor survivor verification cycle.',
+    });
+
+    // 3. Clear existing autoDemoTimer
+    if (this.autoDemoTimer) clearTimeout(this.autoDemoTimer);
+
+    // Stop after 15 seconds of accelerated simulation
+    this.autoDemoTimer = window.setTimeout(() => {
+      this.state.isAutoDemoRunning = false;
+      this.setSpeed(1);
+      this.notify();
+    }, 16000);
+
     this.notify();
   }
 
@@ -256,6 +425,7 @@ export class DroneSimulator {
     this.state.telemetry.speed = 7.4;
     this.state.telemetry.battery = 92;
     this.state.flightPath = [[initialLat, initialLng]];
+    this.state.companionFlightPath = [[initialLat + 0.0018, initialLng + 0.0015]];
     this.state.incidents = [];
     this.state.missionEvents = [
       {
@@ -272,6 +442,7 @@ export class DroneSimulator {
     this.state.missionStatus = 'ACTIVE';
     this.state.missionMode = 'AUTONOMOUS_SEARCH';
     this.state.isPaused = false;
+    this.state.isAutoDemoRunning = false;
     
     this.start();
     this.notify();
@@ -290,6 +461,7 @@ export class DroneSimulator {
       targetVisual: 0.81,
       targetThermal: 0.93,
       targetAcoustic: 0.86,
+      targetLidar: 0.90,
       discovered: false,
     };
 
@@ -305,6 +477,51 @@ export class DroneSimulator {
     });
 
     this.notify();
+  }
+
+  public exportSITREP(): string {
+    const activeIncidents = this.state.incidents.filter(i => i.status !== 'RESOLVED');
+    const resolvedIncidents = this.state.incidents.filter(i => i.status === 'RESOLVED');
+    
+    const sitrep = `# REC TACTICAL SITUATION REPORT (SITREP)
+**GENERATED:** ${new Date().toISOString()}
+**CALLSIGN:** REC-01 TACTICAL GCS (TEAM FUKREY TECHIES)
+**OPERATION:** ${this.state.searchSector.name}
+**SCENARIO:** ${DRILL_SCENARIOS[this.state.activeScenario].title}
+
+---
+
+## 1. EXECUTIVE SUMMARY
+- **Mission Elapsed Time:** ${Math.floor(this.state.missionTimeSeconds / 60)}m ${this.state.missionTimeSeconds % 60}s
+- **Grid Coverage:** ${this.state.searchSector.areaCoveredPercent}% (${this.state.searchSector.totalAreaM2.toLocaleString()} m² survey area)
+- **Active Casualties Pending Extraction:** ${activeIncidents.length}
+- **Rescued / Evacuated Casualties:** ${resolvedIncidents.length}
+- **Telemetry Health:** ${this.state.telemetry.battery}% Battery | SATCOM ${this.state.telemetry.connection} | ${this.state.telemetry.satellites} Satellites locked
+
+---
+
+## 2. VERIFIED INCIDENT MANIFEST
+${this.state.incidents.map((inc, i) => `
+### [${i + 1}] ${inc.incidentId} — Priority: ${inc.priority} (${inc.status})
+- **Coordinates:** ${inc.latitude.toFixed(5)}°N, ${inc.longitude.toFixed(5)}°E
+- **SVLP Confidence Score:** ${Math.round(inc.confidence * 100)}%
+- **Corroborating Multi-Spectral Telemetry:**
+  - Optical (RGB): ${Math.round(inc.evidence.visual * 100)}%
+  - FLIR Thermal IR: ${Math.round(inc.evidence.thermal * 100)}%
+  - Acoustic Resonance: ${Math.round(inc.evidence.acoustic * 100)}%
+  - LiDAR Structural Void: ${inc.evidence.lidar ? Math.round(inc.evidence.lidar * 100) + '%' : 'Corroborated'}
+- **Recommended Extraction Vector:** ${inc.recommendedAction}
+`).join('\n')}
+
+---
+
+## 3. ACTIVE HAZARD EXCLUSION ZONES
+${this.state.hazardZones.map(hz => `- **${hz.name}** [${hz.severity}]: ${hz.description}`).join('\n')}
+
+---
+*Report certified by REC-SVLP Autonomous Multi-Spectral Fusion Protocol v1.0*
+`;
+    return sitrep;
   }
 
   public getSVLPEngine(): SVLPEngine {
@@ -323,7 +540,7 @@ export class DroneSimulator {
 
   private addEvent(event: MissionEvent): void {
     this.state.missionEvents.unshift(event);
-    if (this.state.missionEvents.length > 50) {
+    if (this.state.missionEvents.length > 60) {
       this.state.missionEvents.pop();
     }
   }
@@ -354,43 +571,59 @@ export class DroneSimulator {
     const baseVisual = 0.10 + Math.random() * 0.08;
     const baseThermal = 0.14 + Math.random() * 0.07;
     const baseAcoustic = 0.06 + Math.random() * 0.09;
+    const baseLidar = 0.12 + Math.random() * 0.08;
 
     let targetVisual = baseVisual;
     let targetThermal = baseThermal;
     let targetAcoustic = baseAcoustic;
+    let targetLidar = baseLidar;
     let hotspotTemp = 19.5 + (Math.random() * 0.6 - 0.3);
     let acousticDb = 42 + Math.floor(Math.random() * 4);
     let acousticFreq = 120 + Math.floor(Math.random() * 20);
     let objectLabel = 'Clear terrain / rubble';
+    let lidarDepth = this.state.telemetry.altitude;
+    let lidarVoidVolume = 0.0;
+    let structuralStatus = 'CLEAR / NO VOID';
 
     if (inHotspotZone && nearestHotspot) {
       const proximity = Math.max(0, 1 - (minDistance / 0.0012));
       targetVisual = baseVisual + (nearestHotspot.targetVisual - baseVisual) * proximity;
       targetThermal = baseThermal + (nearestHotspot.targetThermal - baseThermal) * proximity;
       targetAcoustic = baseAcoustic + (nearestHotspot.targetAcoustic - baseAcoustic) * proximity;
+      targetLidar = baseLidar + ((nearestHotspot.targetLidar || 0.85) - baseLidar) * proximity;
       
       hotspotTemp = 20.0 + (37.2 - 20.0) * proximity;
       acousticDb = Math.round(45 + (78 - 45) * proximity);
       acousticFreq = Math.round(150 + (840 - 150) * proximity);
+      lidarDepth = parseFloat((this.state.telemetry.altitude - proximity * 14).toFixed(1));
+      lidarVoidVolume = parseFloat((proximity * 5.4).toFixed(1));
 
       if (proximity > 0.6) {
         objectLabel = 'Biometric warmth detected / human posture match';
+        structuralStatus = `DEEP CAVITY (${lidarVoidVolume}m³ VOID DETECTED)`;
       } else if (proximity > 0.3) {
         objectLabel = 'Possible heat anomaly / partial silhouette';
+        structuralStatus = 'UNSTABLE VOID INDICATION';
       }
     }
+
+    const currentAmbient = DRILL_SCENARIOS[this.state.activeScenario]?.ambientTemp || 18.5;
 
     this.state.sensorEvidence = {
       visual: parseFloat(targetVisual.toFixed(3)),
       thermal: parseFloat(targetThermal.toFixed(3)),
       acoustic: parseFloat(targetAcoustic.toFixed(3)),
+      lidar: parseFloat(targetLidar.toFixed(3)),
       timestamp: new Date().toISOString(),
       visualObjectLabel: objectLabel,
       visualConfidence: parseFloat(targetVisual.toFixed(2)),
       thermalHotspotTemp: parseFloat(hotspotTemp.toFixed(1)),
-      thermalAmbientTemp: 18.5,
+      thermalAmbientTemp: currentAmbient,
       acousticDecibels: acousticDb,
       acousticFrequency: acousticFreq,
+      lidarDepthM: lidarDepth,
+      lidarVoidVolumeM3: lidarVoidVolume,
+      lidarStructuralIntegrity: structuralStatus,
     };
 
     // 3. Evaluate through REC-SVLP Engine
@@ -422,7 +655,6 @@ export class DroneSimulator {
         this.state.missionMode = 'MANUAL_INVESTIGATION';
         this.state.telemetry.altitude = 28.0;
         this.state.telemetry.speed = 4.2;
-        // Bias movement gently toward the suspicious point
         if (nearestHotspot) {
           this.steerToward(nearestHotspot.latitude, nearestHotspot.longitude, 0.00015);
         } else {
@@ -434,7 +666,6 @@ export class DroneSimulator {
         this.state.missionMode = 'MANUAL_INVESTIGATION';
         this.state.telemetry.altitude = 15.4;
         this.state.telemetry.speed = 2.4;
-        // Circle around the hotspot
         if (nearestHotspot) {
           const angle = this.state.missionTimeSeconds * 0.2;
           const targetLat = nearestHotspot.latitude + Math.sin(angle) * 0.00025;
@@ -466,7 +697,16 @@ export class DroneSimulator {
         break;
     }
 
-    // 5. Battery and Telemetry micro-updates
+    // 5. Update Swarm Companion drone (REC-02) orbiting perimeter
+    const compAngle = this.state.missionTimeSeconds * 0.05;
+    this.state.companionTelemetry.latitude = DEFAULT_SEARCH_SECTOR.center[0] + Math.sin(compAngle) * 0.0022;
+    this.state.companionTelemetry.longitude = DEFAULT_SEARCH_SECTOR.center[1] + Math.cos(compAngle) * 0.0028;
+    this.state.companionTelemetry.heading = Math.round(((compAngle * 180) / Math.PI + 90) % 360);
+    this.state.companionTelemetry.timestamp = new Date().toISOString();
+    this.state.companionFlightPath.push([this.state.companionTelemetry.latitude, this.state.companionTelemetry.longitude]);
+    if (this.state.companionFlightPath.length > 100) this.state.companionFlightPath.shift();
+
+    // 6. Battery and Telemetry micro-updates
     if (this.state.missionTimeSeconds % 8 === 0 && this.state.telemetry.battery > 5) {
       this.state.telemetry.battery -= 1;
       this.state.telemetry.batteryVoltage = parseFloat((20.0 + (this.state.telemetry.battery / 100) * 4.2).toFixed(1));
@@ -480,7 +720,7 @@ export class DroneSimulator {
       );
     }
 
-    // Append to flight path history (limit to last 200 points for smooth rendering)
+    // Append to flight path history (limit to last 250 points for smooth rendering)
     this.state.flightPath.push([this.state.telemetry.latitude, this.state.telemetry.longitude]);
     if (this.state.flightPath.length > 250) {
       this.state.flightPath.shift();
@@ -540,9 +780,10 @@ export class DroneSimulator {
         visual: this.state.sensorEvidence.visual,
         thermal: this.state.sensorEvidence.thermal,
         acoustic: this.state.sensorEvidence.acoustic,
+        lidar: this.state.sensorEvidence.lidar,
       },
       recommendedAction: evaluation.recommendedAction,
-      notes: `Corroborated by thermal hotspot (${this.state.sensorEvidence.thermalHotspotTemp}°C) and acoustic voice frequency (${this.state.sensorEvidence.acousticFrequency}Hz).`,
+      notes: `Corroborated by thermal hotspot (${this.state.sensorEvidence.thermalHotspotTemp}°C), LiDAR void (${this.state.sensorEvidence.lidarVoidVolumeM3}m³), and acoustic resonance (${this.state.sensorEvidence.acousticFrequency}Hz).`,
       acknowledged: false,
     };
 

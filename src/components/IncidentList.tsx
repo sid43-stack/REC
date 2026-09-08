@@ -96,19 +96,31 @@ export const IncidentList: React.FC<IncidentListProps> = ({
           </div>
         </div>
 
-        {/* SITREP Export Button */}
-        <button
-          onClick={handleExportSITREP}
-          className={`flex items-center space-x-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold transition border ${
-            sitrepCopied
-              ? 'bg-emerald-600/30 text-emerald-300 border-emerald-500/50'
-              : 'bg-gradient-to-r from-amber-600/30 to-orange-500/30 text-amber-300 border-amber-500/40 hover:border-amber-400'
-          }`}
-          title="Download complete tactical situation report and copy to clipboard"
-        >
-          {sitrepCopied ? <Check className="w-3 h-3" /> : <Download className="w-3 h-3" />}
-          <span>{sitrepCopied ? 'SITREP EXPORTED' : 'EXPORT SITREP'}</span>
-        </button>
+        {/* Header Actions */}
+        <div className="flex items-center space-x-1.5">
+          <button
+            onClick={() => service.injectAnomaly()}
+            className="flex items-center space-x-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-600/25 text-rose-300 border border-rose-500/40 hover:bg-rose-600/40 hover:text-white transition shadow-[0_0_10px_rgba(244,63,94,0.2)]"
+            title="Simulate immediate disaster accident in current sector"
+          >
+            <Flame className="w-3 h-3 text-rose-400 animate-pulse" />
+            <span>+ SIMULATE ACCIDENT</span>
+          </button>
+
+          {/* SITREP Export Button */}
+          <button
+            onClick={handleExportSITREP}
+            className={`flex items-center space-x-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold transition border ${
+              sitrepCopied
+                ? 'bg-emerald-600/30 text-emerald-300 border-emerald-500/50'
+                : 'bg-gradient-to-r from-amber-600/30 to-orange-500/30 text-amber-300 border-amber-500/40 hover:border-amber-400'
+            }`}
+            title="Download complete tactical situation report and copy to clipboard"
+          >
+            {sitrepCopied ? <Check className="w-3 h-3" /> : <Download className="w-3 h-3" />}
+            <span>{sitrepCopied ? 'SITREP EXPORTED' : 'EXPORT SITREP'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Filter Chips Bar */}
@@ -151,26 +163,38 @@ export const IncidentList: React.FC<IncidentListProps> = ({
                   : 'bg-[#10131d] border-white/10 hover:border-amber-500/40'
               }`}
             >
-              {/* Card Top: ID, Priority, Timestamp */}
+              {/* Card Top: ID, Title, Priority, Timestamp */}
               <div className="flex items-start justify-between gap-2 mb-2">
-                <div className="flex items-center space-x-2">
-                  <span className="font-tech text-sm font-bold text-slate-100 tracking-wide">
-                    {incident.incidentId}
-                  </span>
-                  <span
-                    className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider ${
-                      isResolved
-                        ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/40'
-                        : isCritical
-                        ? 'bg-rose-600 text-white animate-pulse'
-                        : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                    }`}
-                  >
-                    {incident.status}
-                  </span>
+                <div className="flex flex-col">
+                  <div className="flex items-center space-x-2">
+                    <span className="font-tech text-sm font-bold text-slate-100 tracking-wide">
+                      {incident.incidentId}
+                    </span>
+                    <span
+                      className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider ${
+                        isResolved
+                          ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/40'
+                          : isCritical
+                          ? 'bg-rose-600 text-white animate-pulse'
+                          : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                      }`}
+                    >
+                      {incident.status.replace(/_/g, ' ')}
+                    </span>
+                    {incident.victimCount && (
+                      <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                        {incident.victimCount} {incident.victimCount === 1 ? 'CASUALTY' : 'CASUALTIES'}
+                      </span>
+                    )}
+                  </div>
+                  {incident.title && (
+                    <div className="text-[11px] font-semibold text-amber-300/90 font-tech mt-0.5 leading-snug">
+                      {incident.title}
+                    </div>
+                  )}
                 </div>
 
-                <div className="flex items-center space-x-1 text-slate-400 font-mono text-[10px]">
+                <div className="flex items-center space-x-1 text-slate-400 font-mono text-[10px] shrink-0">
                   <Clock className="w-3 h-3 text-amber-400" />
                   <span>{new Date(incident.timestamp).toLocaleTimeString()}</span>
                 </div>

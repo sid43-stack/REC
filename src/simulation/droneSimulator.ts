@@ -44,7 +44,7 @@ export interface Hotspot {
   discovered: boolean;
 }
 
-const PRESET_HOTSPOTS: Hotspot[] = [
+export const PRESET_HOTSPOTS: Hotspot[] = [
   {
     id: 'HOT-01',
     latitude: 28.6148,
@@ -130,6 +130,395 @@ export const DRILL_SCENARIOS: Record<DrillScenarioId, DrillScenario> = {
   },
 };
 
+export const createScenarioHotspots = (scenarioId: DrillScenarioId): Hotspot[] => {
+  switch (scenarioId) {
+    case 'FLASH_FLOOD_NIGHT':
+      return [
+        {
+          id: 'HOT-FF-01',
+          latitude: 28.6152,
+          longitude: 77.2110,
+          description: 'Submerged vehicle roof with active strobe signals in flood channel',
+          targetVisual: 0.74,
+          targetThermal: 0.95,
+          targetAcoustic: 0.88,
+          targetLidar: 0.82,
+          discovered: false,
+        },
+        {
+          id: 'HOT-FF-02',
+          latitude: 28.6138,
+          longitude: 77.2085,
+          description: 'Riverbank embankment washout with trapped survivor in debris cluster',
+          targetVisual: 0.68,
+          targetThermal: 0.86,
+          targetAcoustic: 0.78,
+          targetLidar: 0.76,
+          discovered: false,
+        },
+        {
+          id: 'HOT-FF-03',
+          latitude: 28.6125,
+          longitude: 77.2105,
+          description: 'Flooded underground commercial basement with distress wrench tapping',
+          targetVisual: 0.62,
+          targetThermal: 0.81,
+          targetAcoustic: 0.76,
+          targetLidar: 0.74,
+          discovered: false,
+        },
+      ];
+
+    case 'CHEMICAL_EXPLOSION':
+      return [
+        {
+          id: 'HOT-CH-01',
+          latitude: 28.6130,
+          longitude: 77.2098,
+          description: 'High-pressure ethylene manifold blast injury site & VOC plume',
+          targetVisual: 0.78,
+          targetThermal: 0.97,
+          targetAcoustic: 0.86,
+          targetLidar: 0.89,
+          discovered: false,
+        },
+        {
+          id: 'HOT-CH-02',
+          latitude: 28.6155,
+          longitude: 77.2075,
+          description: 'Chlorine scrubber tower collapse with elevated catwalk casualties',
+          targetVisual: 0.82,
+          targetThermal: 0.88,
+          targetAcoustic: 0.75,
+          targetLidar: 0.84,
+          discovered: false,
+        },
+        {
+          id: 'HOT-CH-03',
+          latitude: 28.6142,
+          longitude: 77.2112,
+          description: 'Chemical trench valve enclosure with hazardous H2S accumulation',
+          targetVisual: 0.65,
+          targetThermal: 0.84,
+          targetAcoustic: 0.79,
+          targetLidar: 0.72,
+          discovered: false,
+        },
+      ];
+
+    case 'EARTHQUAKE_RUBBLE':
+    default:
+      return [
+        {
+          id: 'HOT-EQ-01',
+          latitude: 28.6148,
+          longitude: 77.2092,
+          description: 'Multi-story collapsed structure with trapped casualties beneath concrete slab',
+          targetVisual: 0.78,
+          targetThermal: 0.95,
+          targetAcoustic: 0.86,
+          targetLidar: 0.89,
+          discovered: false,
+        },
+        {
+          id: 'HOT-EQ-02',
+          latitude: 28.6135,
+          longitude: 77.2072,
+          description: 'Transit overpass rupture with sheared girder onto crushed vehicle',
+          targetVisual: 0.81,
+          targetThermal: 0.87,
+          targetAcoustic: 0.72,
+          targetLidar: 0.85,
+          discovered: false,
+        },
+        {
+          id: 'HOT-EQ-03',
+          latitude: 28.6125,
+          longitude: 77.2105,
+          description: 'Partially submerged basement cavity with faint distress tapping',
+          targetVisual: 0.66,
+          targetThermal: 0.86,
+          targetAcoustic: 0.80,
+          targetLidar: 0.78,
+          discovered: false,
+        },
+      ];
+  }
+};
+
+export const createScenarioIncidents = (scenarioId: DrillScenarioId): Incident[] => {
+  const now = Date.now();
+  switch (scenarioId) {
+    case 'FLASH_FLOOD_NIGHT':
+      return [
+        {
+          incidentId: 'INC-201',
+          title: 'Submerged Minivan Stranded in Current Surge',
+          accidentType: 'VEHICLE_SUBMERSION',
+          victimCount: 2,
+          timestamp: new Date(now - 6 * 60 * 1000).toISOString(),
+          latitude: 28.6152,
+          longitude: 77.2110,
+          confidence: 0.93,
+          status: 'HIGH_PRIORITY',
+          priority: 'CRITICAL',
+          evidence: {
+            visual: 0.74,
+            thermal: 0.95,
+            acoustic: 0.88,
+            lidar: 0.82,
+          },
+          recommendedAction: 'Vector NDRF Swiftwater Rescue Boat to riverbank grid. Drone REC-02 initiate life-preserver payload drop.',
+          notes: 'Submerged passenger van caught in 2.2 m/s flood surge. 2 adults on roof flashing emergency strobe. Water level rising 8cm/hr.',
+          acknowledged: true,
+        },
+        {
+          incidentId: 'INC-202',
+          title: 'Embankment Washout Debris Entrapment',
+          accidentType: 'DEBRIS_ENTRAPMENT',
+          victimCount: 1,
+          timestamp: new Date(now - 16 * 60 * 1000).toISOString(),
+          latitude: 28.6138,
+          longitude: 77.2085,
+          confidence: 0.84,
+          status: 'UNDER_VERIFICATION',
+          priority: 'HIGH',
+          evidence: {
+            visual: 0.68,
+            thermal: 0.86,
+            acoustic: 0.78,
+            lidar: 0.76,
+          },
+          recommendedAction: 'Deploy motorized winch from northern levee. FLIR thermal continuous lock to monitor hypothermia risk.',
+          notes: 'Drifting log and debris mass pinned against drainage culvert. Vocal calls corroborated at 180Hz.',
+          acknowledged: false,
+        },
+        {
+          incidentId: 'INC-203',
+          title: 'Commercial Basement Flood Inundation',
+          accidentType: 'STRUCTURAL_INUNDATION',
+          victimCount: 1,
+          timestamp: new Date(now - 32 * 60 * 1000).toISOString(),
+          latitude: 28.6125,
+          longitude: 77.2105,
+          confidence: 0.79,
+          status: 'UNDER_VERIFICATION',
+          priority: 'MEDIUM',
+          evidence: {
+            visual: 0.62,
+            thermal: 0.81,
+            acoustic: 0.76,
+            lidar: 0.74,
+          },
+          recommendedAction: 'Dispatch portable submersible dewatering pump and tactical extraction hoist team.',
+          notes: 'Underground parking security cabin flooded. Faint metallic wrench distress tapping detected.',
+          acknowledged: false,
+        },
+        {
+          incidentId: 'INC-204',
+          title: 'Residential Rooftop Rescue Completed',
+          accidentType: 'FLOOD_EVACUATION',
+          victimCount: 3,
+          timestamp: new Date(now - 55 * 60 * 1000).toISOString(),
+          latitude: 28.6108,
+          longitude: 77.2095,
+          confidence: 0.91,
+          status: 'RESOLVED',
+          priority: 'HIGH',
+          evidence: {
+            visual: 0.88,
+            thermal: 0.92,
+            acoustic: 0.84,
+            lidar: 0.80,
+          },
+          recommendedAction: 'Evacuation completed. Family of 3 transferred to Municipal Shelter Sector 4.',
+          notes: 'Rapid airlift hoist completed by helicopter squad. All vital signs stable.',
+          acknowledged: true,
+        },
+      ];
+
+    case 'CHEMICAL_EXPLOSION':
+      return [
+        {
+          incidentId: 'INC-301',
+          title: 'Storage Tank Manifold Blast Injury',
+          accidentType: 'BLEVE_EXPLOSION',
+          victimCount: 1,
+          timestamp: new Date(now - 4 * 60 * 1000).toISOString(),
+          latitude: 28.6130,
+          longitude: 77.2098,
+          confidence: 0.96,
+          status: 'HIGH_PRIORITY',
+          priority: 'CRITICAL',
+          hazardZoneRef: 'HAZ-02',
+          evidence: {
+            visual: 0.78,
+            thermal: 0.97,
+            acoustic: 0.86,
+            lidar: 0.89,
+          },
+          recommendedAction: 'Level-A Hazmat extraction team entry authorized with SCBA. Continuous volatile organic plume tracking active.',
+          notes: 'Unconscious plant technician near high-pressure ethylene manifold. Severe thermal burns & vapor inhalation risk.',
+          acknowledged: true,
+        },
+        {
+          incidentId: 'INC-302',
+          title: 'Chlorine Scrubber Tower Collapse',
+          accidentType: 'TOXIC_BREACH',
+          victimCount: 2,
+          timestamp: new Date(now - 14 * 60 * 1000).toISOString(),
+          latitude: 28.6155,
+          longitude: 77.2075,
+          confidence: 0.87,
+          status: 'UNDER_VERIFICATION',
+          priority: 'HIGH',
+          hazardZoneRef: 'HAZ-01',
+          evidence: {
+            visual: 0.82,
+            thermal: 0.88,
+            acoustic: 0.75,
+            lidar: 0.84,
+          },
+          recommendedAction: 'Establish 200m downwind safety perimeter. REC-02 drone deploy chemical burn neutralization kit.',
+          notes: 'Secondary structural collapse of steel scaffolding onto solvent line. Workers signaling from elevated catwalk.',
+          acknowledged: false,
+        },
+        {
+          incidentId: 'INC-303',
+          title: 'Chemical Trench Gas Enclosure',
+          accidentType: 'CONFINED_SPACE_TOXIC',
+          victimCount: 1,
+          timestamp: new Date(now - 28 * 60 * 1000).toISOString(),
+          latitude: 28.6142,
+          longitude: 77.2112,
+          confidence: 0.81,
+          status: 'UNDER_VERIFICATION',
+          priority: 'MEDIUM',
+          evidence: {
+            visual: 0.65,
+            thermal: 0.84,
+            acoustic: 0.79,
+            lidar: 0.72,
+          },
+          recommendedAction: 'Forced ventilation and toxic gas suction required before stretcher team descent.',
+          notes: 'Pipeline maintenance technician trapped in valve chamber with hazardous H2S accumulation.',
+          acknowledged: false,
+        },
+        {
+          incidentId: 'INC-304',
+          title: 'Loading Dock Perimeter Evacuation Completed',
+          accidentType: 'HAZMAT_TRIAGE',
+          victimCount: 4,
+          timestamp: new Date(now - 48 * 60 * 1000).toISOString(),
+          latitude: 28.6162,
+          longitude: 77.2068,
+          confidence: 0.88,
+          status: 'RESOLVED',
+          priority: 'MEDIUM',
+          evidence: {
+            visual: 0.86,
+            thermal: 0.80,
+            acoustic: 0.74,
+            lidar: 0.65,
+          },
+          recommendedAction: 'Evacuation successful. Decontamination shower protocol executed at Gate 3.',
+          notes: 'Perimeter workers safely moved upwind and triaged for mild particulate exposure.',
+          acknowledged: true,
+        },
+      ];
+
+    case 'EARTHQUAKE_RUBBLE':
+    default:
+      return [
+        {
+          incidentId: 'INC-101',
+          title: 'Commercial Complex Structural Collapse',
+          accidentType: 'STRUCTURAL_COLLAPSE',
+          victimCount: 2,
+          timestamp: new Date(now - 5 * 60 * 1000).toISOString(),
+          latitude: 28.6148,
+          longitude: 77.2092,
+          confidence: 0.94,
+          status: 'HIGH_PRIORITY',
+          priority: 'CRITICAL',
+          hazardZoneRef: 'HAZ-01',
+          evidence: {
+            visual: 0.78,
+            thermal: 0.95,
+            acoustic: 0.86,
+            lidar: 0.89,
+          },
+          recommendedAction: 'Dispatch USAR Heavy Rescue Unit with pneumatic lifting bags & hydraulic spreaders. Gas shutoff active.',
+          notes: 'Multi-story reinforced concrete collapse. 2 adult casualties trapped in sub-surface void beneath slab #4. Acoustic tapping confirmed at 180Hz.',
+          acknowledged: true,
+        },
+        {
+          incidentId: 'INC-102',
+          title: 'Transit Overpass Rupture & Crushed Van',
+          accidentType: 'VEHICLE_CRUSH',
+          victimCount: 1,
+          timestamp: new Date(now - 18 * 60 * 1000).toISOString(),
+          latitude: 28.6135,
+          longitude: 77.2072,
+          confidence: 0.86,
+          status: 'UNDER_VERIFICATION',
+          priority: 'HIGH',
+          evidence: {
+            visual: 0.81,
+            thermal: 0.87,
+            acoustic: 0.72,
+            lidar: 0.85,
+          },
+          recommendedAction: 'Deploy crane truck and stabilization jacks. Maintain drone thermal surveillance on fuel leak boundary.',
+          notes: 'Concrete bridge girder sheared onto transit van. Single conscious driver trapped behind steering column.',
+          acknowledged: false,
+        },
+        {
+          incidentId: 'INC-103',
+          title: 'Collapsed Basement Cavity Inundation',
+          accidentType: 'VOID_ENTRAPMENT',
+          victimCount: 1,
+          timestamp: new Date(now - 35 * 60 * 1000).toISOString(),
+          latitude: 28.6125,
+          longitude: 77.2105,
+          confidence: 0.82,
+          status: 'UNDER_VERIFICATION',
+          priority: 'MEDIUM',
+          evidence: {
+            visual: 0.66,
+            thermal: 0.86,
+            acoustic: 0.80,
+            lidar: 0.78,
+          },
+          recommendedAction: 'Deploy submersible pump and tactical extraction hoist. Drone REC-02 standing by for medical payload drop.',
+          notes: 'Sub-surface basement void with faint distress tapping. Ruptured water main causing slow accumulation.',
+          acknowledged: false,
+        },
+        {
+          incidentId: 'INC-104',
+          title: 'Residential Arcade Surface Rescue Completed',
+          accidentType: 'SURFACE_EXTRACTION',
+          victimCount: 1,
+          timestamp: new Date(now - 50 * 60 * 1000).toISOString(),
+          latitude: 28.6115,
+          longitude: 77.2078,
+          confidence: 0.89,
+          status: 'RESOLVED',
+          priority: 'MEDIUM',
+          evidence: {
+            visual: 0.84,
+            thermal: 0.79,
+            acoustic: 0.75,
+            lidar: 0.62,
+          },
+          recommendedAction: 'Evacuation completed. Casualty safely transported to Trauma Care Unit Alpha.',
+          notes: 'Surface rubble entrapment successfully cleared by Quick Response Team. Stable condition.',
+          acknowledged: true,
+        },
+      ];
+  }
+};
+
 export interface SimulatorState {
   telemetry: Telemetry;
   companionTelemetry: Telemetry;
@@ -163,7 +552,7 @@ export class DroneSimulator {
   private autoDemoTimer: number | null = null;
   private currentWaypointIndex: number = 0;
   private tickIntervalMs: number = 1000;
-  private incidentCounter: number = 1;
+  private incidentCounter: number = 105;
   private alertHoldTicks: number = 0;
 
   constructor() {
@@ -240,7 +629,7 @@ export class DroneSimulator {
         recommendedAction: 'Maintain primary search pattern. Multi-sensor background scanning active.',
         stateReason: 'Normal survey grid scan in progress.',
       },
-      incidents: [],
+      incidents: createScenarioIncidents('EARTHQUAKE_RUBBLE'),
       missionEvents: [
         {
           id: 'EVT-001',
@@ -265,7 +654,7 @@ export class DroneSimulator {
       missionStatus: 'ACTIVE',
       missionMode: 'AUTONOMOUS_SEARCH',
       missionTimeSeconds: 0,
-      hotspots: JSON.parse(JSON.stringify(PRESET_HOTSPOTS)),
+      hotspots: createScenarioHotspots('EARTHQUAKE_RUBBLE'),
       simulationSpeed: 1,
       isPaused: false,
       isAutoDemoRunning: false,
@@ -313,23 +702,29 @@ export class DroneSimulator {
     this.state.activeScenario = scenarioId;
     const scenario = DRILL_SCENARIOS[scenarioId];
 
+    this.state.incidents = createScenarioIncidents(scenarioId);
+    this.state.hotspots = createScenarioHotspots(scenarioId);
+
     if (scenarioId === 'FLASH_FLOOD_NIGHT') {
       this.state.searchSector.name = 'Sector Beta — Riverbank Inundation';
       this.state.sensorEvidence.thermalAmbientTemp = 14.0;
+      this.incidentCounter = 205;
     } else if (scenarioId === 'CHEMICAL_EXPLOSION') {
       this.state.searchSector.name = 'Sector Gamma — Industrial Complex Perimeter';
       this.state.sensorEvidence.thermalAmbientTemp = 22.0;
+      this.incidentCounter = 305;
     } else {
       this.state.searchSector.name = DEFAULT_SEARCH_SECTOR.name;
       this.state.sensorEvidence.thermalAmbientTemp = 18.5;
+      this.incidentCounter = 105;
     }
 
     this.addEvent({
       id: `EVT-SCENARIO-${Date.now()}`,
       timestamp: new Date().toISOString(),
       type: 'WARNING',
-      title: `Scenario Changed: ${scenario.title}`,
-      details: `${scenario.description} Wind: ${scenario.windSpeed}. Recommended: ${scenario.recommendedSensor}.`,
+      title: `Disaster Scenario Loaded: ${scenario.title}`,
+      details: `${scenario.description} Activated ${this.state.incidents.length} verified accident records and ${this.state.hotspots.length} radar search targets.`,
     });
 
     this.notify();
@@ -430,17 +825,17 @@ export class DroneSimulator {
     this.state.telemetry.battery = 92;
     this.state.flightPath = [[initialLat, initialLng]];
     this.state.companionFlightPath = [[initialLat + 0.0018, initialLng + 0.0015]];
-    this.state.incidents = [];
+    this.state.incidents = createScenarioIncidents(this.state.activeScenario);
     this.state.missionEvents = [
       {
         id: 'EVT-RST',
         timestamp: new Date().toISOString(),
         type: 'INFO',
         title: 'Mission Reset',
-        details: 'REC Command Center reset to initial survey point.',
+        details: 'REC Command Center reset to initial survey point. Disaster incident manifest reloaded.',
       },
     ];
-    this.state.hotspots = JSON.parse(JSON.stringify(PRESET_HOTSPOTS));
+    this.state.hotspots = createScenarioHotspots(this.state.activeScenario);
     this.state.searchSector.areaCoveredPercent = 5;
     this.state.missionTimeSeconds = 0;
     this.state.missionStatus = 'ACTIVE';
@@ -452,32 +847,114 @@ export class DroneSimulator {
     this.notify();
   }
 
-  public injectAnomaly(): void {
-    // Manually force an anomaly right in front of the drone for instant demonstration
+  public injectAnomaly(accidentTitle?: string): void {
     const curLat = this.state.telemetry.latitude;
     const curLng = this.state.telemetry.longitude;
     
-    const manualHotspot: Hotspot = {
-      id: `HOT-MANUAL-${Date.now()}`,
-      latitude: curLat + 0.0003,
-      longitude: curLng + 0.0004,
-      description: 'Operator simulated survivor signature for REC-SVLP drill',
-      targetVisual: 0.81,
-      targetThermal: 0.93,
-      targetAcoustic: 0.86,
-      targetLidar: 0.90,
-      discovered: false,
+    // Position accident immediately in forward flight corridor (~45m ahead)
+    const headingRad = (this.state.telemetry.heading * Math.PI) / 180;
+    const forwardLat = curLat + Math.cos(headingRad) * 0.00045;
+    const forwardLng = curLng + Math.sin(headingRad) * 0.00045;
+
+    const incidentNum = this.incidentCounter++;
+    const incidentId = `INC-${String(incidentNum).padStart(3, '0')}`;
+
+    let defaultTitle = 'Emergency Structural Cavity Accident';
+    let accidentType = 'STRUCTURAL_COLLAPSE';
+    let defaultNotes = 'Immediate multi-spectral anomaly detected forward of drone patrol vector. High thermal signature & acoustic distress pattern.';
+    let action = 'Vector primary drone to hover coordinates. Dispatch rapid extraction squad with hydraulic spreaders.';
+
+    if (this.state.activeScenario === 'FLASH_FLOOD_NIGHT') {
+      defaultTitle = 'Surge Debris Car Crash / Trapped Occupants';
+      accidentType = 'WATER_ENTRAPMENT';
+      defaultNotes = 'Vehicle displaced by flood surge pinned against retaining barrier. Thermal body heat localized inside cabin.';
+      action = 'NDRF swiftwater team deploy tether line. Drone REC-02 dispatch flotation payload.';
+    } else if (this.state.activeScenario === 'CHEMICAL_EXPLOSION') {
+      defaultTitle = 'Process Pipe Rupture & Chemical Burn Casualty';
+      accidentType = 'CHEMICAL_EXPOSURE';
+      defaultNotes = 'Aerosolized toxic chemical leak with high thermal contrast. Worker signaling with pass alarm.';
+      action = 'Hazmat emergency response team dispatch with antidote kit. Exclude non-essential personnel.';
+    }
+
+    const title = accidentTitle || defaultTitle;
+
+    const newIncident: Incident = {
+      incidentId,
+      title,
+      accidentType,
+      victimCount: 1 + Math.floor(Math.random() * 2),
+      timestamp: new Date().toISOString(),
+      latitude: parseFloat(forwardLat.toFixed(5)),
+      longitude: parseFloat(forwardLng.toFixed(5)),
+      confidence: 0.94,
+      status: 'HIGH_PRIORITY',
+      priority: 'CRITICAL',
+      evidence: {
+        visual: 0.82,
+        thermal: 0.96,
+        acoustic: 0.88,
+        lidar: 0.91,
+      },
+      recommendedAction: action,
+      notes: defaultNotes,
+      acknowledged: false,
     };
 
+    // 1. Immediately insert new accident into active incident queue
+    this.state.incidents.unshift(newIncident);
+
+    // 2. Add as an active radar hotspot
+    const manualHotspot: Hotspot = {
+      id: `HOT-${incidentId}`,
+      latitude: forwardLat,
+      longitude: forwardLng,
+      description: `${title} • ${defaultNotes}`,
+      targetVisual: 0.82,
+      targetThermal: 0.96,
+      targetAcoustic: 0.88,
+      targetLidar: 0.91,
+      discovered: false,
+    };
     this.state.hotspots.unshift(manualHotspot);
 
+    // 3. Vector drone immediately to accident site for investigation
+    this.state.missionMode = 'MANUAL_INVESTIGATION';
+    this.state.telemetry.altitude = 18.0;
+    this.state.telemetry.speed = 6.8;
+
+    // 4. Update sensor evidence readings to reflect accident detection
+    this.state.sensorEvidence = {
+      ...this.state.sensorEvidence,
+      visual: 0.82,
+      thermal: 0.96,
+      acoustic: 0.88,
+      lidar: 0.91,
+      visualObjectLabel: `CRITICAL CASUALTY: ${title}`,
+      visualConfidence: 0.82,
+      thermalHotspotTemp: 38.4,
+      acousticDecibels: 84,
+      acousticFrequency: 180,
+      lidarVoidVolumeM3: 3.8,
+      lidarStructuralIntegrity: 'CRITICAL CAVITY / ACCIDENT VOID DETECTED',
+    };
+
+    // 5. Force SVLP evaluation into INVESTIGATION
+    this.state.svlpEvaluation = {
+      state: 'INVESTIGATION',
+      confidence: 0.94,
+      recommendedAction: action,
+      stateReason: `Accident simulated: ${title}. Multi-spectral sensors corroborated.`,
+      targetCoordinates: { latitude: forwardLat, longitude: forwardLng },
+    };
+
+    // 6. Log critical timeline alert
     this.addEvent({
-      id: `EVT-${Date.now()}`,
+      id: `EVT-ACCIDENT-${Date.now()}`,
       timestamp: new Date().toISOString(),
-      type: 'WARNING',
-      title: 'Manual Anomaly Injected',
-      details: 'Target anomaly placed at immediate forward vector for verification demonstration.',
-      relatedCoordinates: { latitude: manualHotspot.latitude, longitude: manualHotspot.longitude },
+      type: 'ALERT',
+      title: `🚨 ACCIDENT REPORTED: ${incidentId}`,
+      details: `${title} at [${forwardLat.toFixed(4)}, ${forwardLng.toFixed(4)}]. Drone vectoring to accident site at 18m AGL.`,
+      relatedCoordinates: { latitude: forwardLat, longitude: forwardLng },
     });
 
     this.notify();
@@ -809,8 +1286,21 @@ ${this.state.hazardZones.map(hz => `- **${hz.name}** [${hz.severity}]: ${hz.desc
     const lng = this.state.telemetry.longitude;
     const incidentId = `INC-${String(this.incidentCounter++).padStart(3, '0')}`;
 
+    let title = 'Sub-Surface Rubble Cavity Casualty';
+    let accidentType = 'STRUCTURAL_COLLAPSE';
+    if (this.state.activeScenario === 'FLASH_FLOOD_NIGHT') {
+      title = 'Inundated Structure Survivor Lock';
+      accidentType = 'WATER_ENTRAPMENT';
+    } else if (this.state.activeScenario === 'CHEMICAL_EXPLOSION') {
+      title = 'Toxic Plume Zone Worker Detection';
+      accidentType = 'CHEMICAL_EXPOSURE';
+    }
+
     const newIncident: Incident = {
       incidentId,
+      title,
+      accidentType,
+      victimCount: 1,
       timestamp: new Date().toISOString(),
       latitude: parseFloat(lat.toFixed(5)),
       longitude: parseFloat(lng.toFixed(5)),

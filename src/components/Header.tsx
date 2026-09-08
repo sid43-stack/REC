@@ -419,14 +419,14 @@ export const Header: React.FC<HeaderProps> = ({
             <span>{isAutoDemoRunning ? 'DEMO RUNNING...' : 'JUDGE AUTO-DEMO'}</span>
           </button>
 
-          {/* Interactive Drill Anomaly Button */}
+          {/* Interactive Disaster Accident Simulation Button */}
           <button
             onClick={() => service.injectAnomaly()}
-            className="flex items-center space-x-1.5 px-3 py-1 rounded text-xs font-mono font-bold bg-gradient-to-r from-rose-500/30 via-orange-500/30 to-amber-500/30 text-amber-300 border border-amber-500/50 hover:border-amber-400 transition shadow-[0_0_12px_rgba(245,158,11,0.25)]"
-            title="Inject survivor signature forward of drone to demonstrate REC-SVLP investigation cycle [A]"
+            className="flex items-center space-x-1.5 px-3 py-1 rounded text-xs font-mono font-bold bg-gradient-to-r from-rose-600/40 via-red-500/30 to-amber-500/30 text-rose-300 border border-rose-500/60 hover:border-rose-400 transition shadow-[0_0_15px_rgba(244,63,94,0.3)] hover:text-white"
+            title="Simulate immediate disaster accident & trapped casualty forward of drone vector [A]"
           >
-            <Flame className="w-3 h-3 text-amber-400" />
-            <span>TRIGGER DRILL</span>
+            <Flame className="w-3 h-3 text-rose-400 animate-pulse" />
+            <span>SIMULATE ACCIDENT</span>
           </button>
         </div>
       </div>

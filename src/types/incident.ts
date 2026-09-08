@@ -10,6 +10,9 @@ export interface IncidentEvidence {
 
 export interface Incident {
   incidentId: string;
+  title?: string;
+  accidentType?: string;
+  victimCount?: number;
   timestamp: string;
   latitude: number;
   longitude: number;

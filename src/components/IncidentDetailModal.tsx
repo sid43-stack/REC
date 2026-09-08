@@ -41,10 +41,13 @@ export const IncidentDetailModal: React.FC<IncidentDetailModalProps> = ({
     const text = `========================================
 REC TACTICAL CASUALTY EXTRACTION TICKET
 ========================================
-INCIDENT ID: ${incident.incidentId}
-PRIORITY:    ${incident.priority} (${incident.status})
-DATETIME:    ${new Date(incident.timestamp).toISOString()}
-TARGET POS:  ${incident.latitude.toFixed(5)}°N, ${incident.longitude.toFixed(5)}°E
+INCIDENT ID:   ${incident.incidentId}
+TITLE:         ${incident.title || 'Emergency Casualty Extraction'}
+ACCIDENT TYPE: ${incident.accidentType || 'DISASTER_CASUALTY'}
+CASUALTIES:    ${incident.victimCount || 1}
+PRIORITY:      ${incident.priority} (${incident.status})
+DATETIME:      ${new Date(incident.timestamp).toISOString()}
+TARGET POS:    ${incident.latitude.toFixed(5)}°N, ${incident.longitude.toFixed(5)}°E
 
 EVIDENCE CORROBORATION:
 - Combined SVLP Score: ${Math.round(incident.confidence * 100)}%
@@ -85,7 +88,17 @@ ${incident.notes || 'N/A'}
                 <span className="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-rose-600 text-white">
                   {incident.priority}
                 </span>
+                {incident.victimCount && (
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                    {incident.victimCount} {incident.victimCount === 1 ? 'CASUALTY' : 'CASUALTIES'}
+                  </span>
+                )}
               </div>
+              {incident.title && (
+                <div className="text-xs font-tech text-amber-300 font-semibold mt-0.5">
+                  {incident.title} {incident.accidentType ? `• [${incident.accidentType.replace(/_/g, ' ')}]` : ''}
+                </div>
+              )}
               <div className="text-xs font-mono text-slate-400">
                 LOGGED: {new Date(incident.timestamp).toLocaleString()}
               </div>

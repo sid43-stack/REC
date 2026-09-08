@@ -389,6 +389,8 @@ export const LiveMap: React.FC<LiveMapProps> = ({ data, onSelectIncident }) => {
             <span class="text-rose-400 font-bold">${inc.incidentId}</span>
             <span class="px-1.5 py-0.2 text-[10px] rounded bg-rose-500/20 text-rose-300 font-bold">${inc.priority}</span>
           </div>
+          ${inc.title ? `<div class="text-[11px] font-bold text-amber-300 mb-1 leading-snug">${inc.title}</div>` : ''}
+          ${inc.victimCount ? `<div class="text-[10px] text-amber-400/90 font-mono mb-1">⚠ Casualties: ${inc.victimCount} ${inc.victimCount === 1 ? 'victim' : 'victims'}</div>` : ''}
           <div class="text-[11px] text-slate-300 mb-1">Survivor Confidence: <strong class="text-rose-400">${Math.round(inc.confidence * 100)}%</strong></div>
           <div class="text-[10px] text-slate-400 space-y-0.5 mb-2">
             <div>RGB Visual: ${(inc.evidence.visual * 100).toFixed(0)}%</div>

@@ -9,7 +9,8 @@ export interface IRECDataService {
   resetMission(): void;
   setSimulationSpeed(speed: number): void;
   setMissionMode(mode: MissionMode): void;
-  injectAnomaly(): void;
+  injectAnomaly(accidentTitle?: string): void;
+  simulateAccident(accidentTitle?: string): void;
   runAutoDemo(): void;
   setScenario(scenarioId: DrillScenarioId): void;
   setActiveDrone(droneId: 'REC-01' | 'REC-02'): void;
@@ -45,8 +46,12 @@ class RECDataService implements IRECDataService {
     droneSimulator.setSpeed(speed);
   }
 
-  public injectAnomaly(): void {
-    droneSimulator.injectAnomaly();
+  public injectAnomaly(accidentTitle?: string): void {
+    droneSimulator.injectAnomaly(accidentTitle);
+  }
+
+  public simulateAccident(accidentTitle?: string): void {
+    droneSimulator.injectAnomaly(accidentTitle);
   }
 
   public runAutoDemo(): void {

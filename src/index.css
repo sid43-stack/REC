@@ -1,0 +1,145 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-chakra: 'Chakra Petch', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --font-sans: 'Inter', sans-serif;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #08090d;
+    color: #f1f5f9;
+  }
+}
+
+/* Custom Tactical Typography */
+.font-tech {
+  font-family: 'Chakra Petch', sans-serif;
+}
+
+.font-code {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Custom Tactical Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(10, 12, 16, 0.6);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #272c38;
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3e4659;
+}
+
+/* Glassmorphism Cards */
+.tactical-glass {
+  background: rgba(13, 16, 23, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.5);
+}
+
+.tactical-glass-subtle {
+  background: rgba(18, 22, 31, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Tactical Corner Reticle */
+.tactical-corner {
+  position: relative;
+}
+
+.tactical-corner::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 7px;
+  height: 7px;
+  border-top: 2px solid #f59e0b;
+  border-left: 2px solid #f59e0b;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.tactical-corner::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 7px;
+  height: 7px;
+  border-bottom: 2px solid #f59e0b;
+  border-right: 2px solid #f59e0b;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Tactical Map Tile Filter - Charcoal & Warm Contrast */
+.tactical-map-tiles .leaflet-tile {
+  filter: brightness(0.65) invert(1) contrast(2.5) hue-rotate(180deg) saturate(0.15) brightness(0.7);
+}
+
+/* Satellite Map Tile Filter - High Contrast Night Recon */
+.satellite-map-tiles .leaflet-tile {
+  filter: contrast(1.15) brightness(0.85);
+}
+
+/* Custom Leaflet Dark Controls */
+.leaflet-control-zoom {
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: rgba(12, 15, 22, 0.9) !important;
+  border-radius: 6px !important;
+  overflow: hidden;
+}
+
+.leaflet-control-zoom a {
+  background-color: #121622 !important;
+  color: #f59e0b !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  transition: all 0.2s ease;
+}
+
+.leaflet-control-zoom a:hover {
+  background-color: #1f2538 !important;
+  color: #fbbf24 !important;
+}
+
+/* Pulsing radar ring */
+@keyframes radar-ring {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+.animate-radar-ring {
+  animation: radar-ring 2.2s cubic-bezier(0.2, 0.8, 0.4, 1) infinite;
+}
+
+/* Ambient emergency flare glow */
+.emergency-glow {
+  box-shadow: 0 0 25px rgba(245, 158, 11, 0.2);
+}
+
+.alert-glow-red {
+  box-shadow: 0 0 30px rgba(244, 63, 94, 0.35);
+}

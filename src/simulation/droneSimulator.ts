@@ -164,6 +164,7 @@ export class DroneSimulator {
   private currentWaypointIndex: number = 0;
   private tickIntervalMs: number = 1000;
   private incidentCounter: number = 1;
+  private alertHoldTicks: number = 0;
 
   constructor() {
     this.svlpEngine = new SVLPEngine(DEFAULT_SVLP_WEIGHTS, DEFAULT_SVLP_THRESHOLDS);
@@ -269,6 +270,9 @@ export class DroneSimulator {
       isPaused: false,
       isAutoDemoRunning: false,
     };
+
+    // Auto-start simulation on creation
+    this.start();
   }
 
   public start(): void {
@@ -550,11 +554,20 @@ ${this.state.hazardZones.map(hz => `- **${hz.name}** [${hz.severity}]: ${hz.desc
 
     this.state.missionTimeSeconds += 1;
 
-    // 1. Check distance to nearest active hotspot
+    // 1. Check distance to nearest active undiscovered hotspot
     let nearestHotspot: Hotspot | null = null;
     let minDistance = Infinity;
 
-    for (const h of this.state.hotspots) {
+    // Filter to active undiscovered hotspots
+    let activeHotspots = this.state.hotspots.filter((h) => !h.discovered);
+
+    // If all preset hotspots were cleared, cycle them so the demo stays perpetually active
+    if (activeHotspots.length === 0 && this.state.missionTimeSeconds > 90) {
+      this.state.hotspots.forEach((h) => { h.discovered = false; });
+      activeHotspots = this.state.hotspots;
+    }
+
+    for (const h of activeHotspots) {
       const dist = Math.hypot(
         h.latitude - this.state.telemetry.latitude,
         h.longitude - this.state.telemetry.longitude
@@ -646,7 +659,7 @@ ${this.state.hazardZones.map(hz => `- **${hz.name}** [${hz.severity}]: ${hz.desc
     switch (svlpEval.state) {
       case 'SEARCH':
         this.state.missionMode = 'AUTONOMOUS_SEARCH';
-        this.state.telemetry.altitude = 35.0 + Math.sin(this.state.missionTimeSeconds * 0.1) * 0.4;
+        this.state.telemetry.altitude = 35.0 + Math.sin(this.state.missionTimeSeconds * 0.1) * 0.5;
         this.state.telemetry.speed = 7.4;
         this.advanceWaypointLawnmower();
         break;
@@ -654,9 +667,9 @@ ${this.state.hazardZones.map(hz => `- **${hz.name}** [${hz.severity}]: ${hz.desc
       case 'SUSPICION':
         this.state.missionMode = 'MANUAL_INVESTIGATION';
         this.state.telemetry.altitude = 28.0;
-        this.state.telemetry.speed = 4.2;
+        this.state.telemetry.speed = 5.2;
         if (nearestHotspot) {
-          this.steerToward(nearestHotspot.latitude, nearestHotspot.longitude, 0.00015);
+          this.steerToward(nearestHotspot.latitude, nearestHotspot.longitude, 0.00018);
         } else {
           this.advanceWaypointLawnmower();
         }
@@ -664,29 +677,57 @@ ${this.state.hazardZones.map(hz => `- **${hz.name}** [${hz.severity}]: ${hz.desc
 
       case 'INVESTIGATION':
         this.state.missionMode = 'MANUAL_INVESTIGATION';
-        this.state.telemetry.altitude = 15.4;
-        this.state.telemetry.speed = 2.4;
+        this.state.telemetry.altitude = 20.0;
+        this.state.telemetry.speed = 3.8;
         if (nearestHotspot) {
-          const angle = this.state.missionTimeSeconds * 0.2;
+          const angle = this.state.missionTimeSeconds * 0.25;
           const targetLat = nearestHotspot.latitude + Math.sin(angle) * 0.00025;
           const targetLng = nearestHotspot.longitude + Math.cos(angle) * 0.0003;
-          this.steerToward(targetLat, targetLng, 0.0002);
+          this.steerToward(targetLat, targetLng, 0.00018);
+        } else {
+          this.advanceWaypointLawnmower();
         }
         break;
 
       case 'VERIFICATION':
         this.state.missionMode = 'VERIFICATION_HOLD';
-        this.state.telemetry.altitude = 12.0;
-        this.state.telemetry.speed = 0.4;
+        this.state.telemetry.altitude = 14.0;
+        this.state.telemetry.speed = 2.4;
         if (nearestHotspot) {
-          this.steerToward(nearestHotspot.latitude, nearestHotspot.longitude, 0.00008);
+          this.steerToward(nearestHotspot.latitude, nearestHotspot.longitude, 0.00012);
+        } else {
+          this.advanceWaypointLawnmower();
         }
         break;
 
       case 'ALERT':
         this.state.missionMode = 'VERIFICATION_HOLD';
-        this.state.telemetry.altitude = 12.0;
-        this.state.telemetry.speed = 0.1;
+        this.state.telemetry.altitude = 12.0 + Math.sin(this.state.missionTimeSeconds * 0.2) * 0.3;
+        this.state.telemetry.speed = 3.2; // Active tactical loiter orbit speed
+        if (nearestHotspot) {
+          // Tactical circular orbit around confirmed survivor location (radius ~25m)
+          const loiterAngle = this.state.missionTimeSeconds * 0.35;
+          const loiterLat = nearestHotspot.latitude + Math.sin(loiterAngle) * 0.00022;
+          const loiterLng = nearestHotspot.longitude + Math.cos(loiterAngle) * 0.00028;
+          this.steerToward(loiterLat, loiterLng, 0.00015);
+
+          this.alertHoldTicks++;
+          if (this.alertHoldTicks > 12) {
+            // Target locked & comm relay active. Advance to next patrol waypoint
+            nearestHotspot.discovered = true;
+            this.alertHoldTicks = 0;
+            this.addEvent({
+              id: `EVT-RELAY-${Date.now()}`,
+              timestamp: new Date().toISOString(),
+              type: 'SUCCESS',
+              title: `Survivor Target Locked • Comm Relay Anchored`,
+              details: `Incident record logged. Extraction coordinates broadcast. REC-01 resuming autonomous survey sweep.`,
+            });
+            this.currentWaypointIndex = (this.currentWaypointIndex + 1) % WAYPOINTS.length;
+          }
+        } else {
+          this.advanceWaypointLawnmower();
+        }
         break;
 
       case 'RETURN':

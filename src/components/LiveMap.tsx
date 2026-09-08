@@ -123,7 +123,7 @@ export const LiveMap: React.FC<LiveMapProps> = ({ data, onSelectIncident }) => {
             <circle cx="20" cy="12" r="2" fill="#fbbf24" />
           </svg>
         </div>
-        <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded bg-black/85 border border-amber-500/40 text-[9px] font-mono text-amber-300 whitespace-nowrap shadow">
+        <div id="uav-alt-label" class="absolute -bottom-4 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded bg-black/85 border border-amber-500/40 text-[9px] font-mono text-amber-300 whitespace-nowrap shadow">
           REC-01 • ${telemetry.altitude.toFixed(0)}m
         </div>
       </div>
@@ -214,8 +214,10 @@ export const LiveMap: React.FC<LiveMapProps> = ({ data, onSelectIncident }) => {
     if (iconElement) {
       const fovCone = iconElement.querySelector('#uav-fov-cone') as HTMLElement | null;
       const uavBody = iconElement.querySelector('#uav-icon-body') as HTMLElement | null;
+      const altLabel = iconElement.querySelector('#uav-alt-label') as HTMLElement | null;
       if (fovCone) fovCone.style.transform = `rotate(${telemetry.heading}deg)`;
       if (uavBody) uavBody.style.transform = `rotate(${telemetry.heading}deg)`;
+      if (altLabel) altLabel.textContent = `REC-01 • ${telemetry.altitude.toFixed(0)}m`;
     }
 
     flightPolylineRef.current.setLatLngs(flightPath);
@@ -423,29 +425,29 @@ export const LiveMap: React.FC<LiveMapProps> = ({ data, onSelectIncident }) => {
 
   return (
     <div className="relative w-full h-full bg-[#080a0f] rounded-lg border border-white/10 overflow-hidden flex flex-col tactical-corner">
-      {/* Map Top Bar Controls Overlay - Unified, Non-overlapping, pinned inside map with z-[2000] */}
-      <div className="absolute top-2.5 left-2.5 right-2.5 z-[2000] pointer-events-none flex items-center justify-between gap-2">
+      {/* Tactical Map HUD Header Bar - Pinned inside the top of the map, full-width, non-overlapping with z-[2000] */}
+      <div className="absolute top-0 left-0 right-0 z-[2000] bg-[#0c0f17]/95 backdrop-blur-md border-b border-white/10 px-3 py-1.5 flex items-center justify-between gap-3 shadow-lg pointer-events-none">
         {/* Left: Surveillance Grid Info */}
-        <div className="pointer-events-auto flex items-center space-x-2 bg-[#0d1017]/95 backdrop-blur-md border border-white/10 px-2.5 py-1 rounded shadow-xl min-w-0 max-w-[48%]">
+        <div className="pointer-events-auto flex items-center space-x-2 min-w-0">
           <Navigation className="w-3.5 h-3.5 text-amber-400 shrink-0" />
           <span className="text-xs font-mono font-semibold tracking-wider text-slate-200 truncate">
             GRID: <span className="text-amber-400 font-bold">{searchSector.name}</span>
           </span>
-          <span className="text-slate-600 hidden md:inline shrink-0">|</span>
-          <span className="text-[11px] font-mono text-slate-400 hidden md:inline shrink-0">
-            COV: <strong className="text-slate-200">{searchSector.areaCoveredPercent}%</strong>
+          <span className="text-slate-600 hidden sm:inline shrink-0">•</span>
+          <span className="text-[11px] font-mono text-slate-400 hidden sm:inline shrink-0">
+            COVERAGE: <strong className="text-slate-200">{searchSector.areaCoveredPercent}%</strong>
           </span>
         </div>
 
-        {/* Right: Map Action Floating Controls */}
-        <div className="pointer-events-auto flex items-center space-x-1 shrink-0 bg-[#0d1017]/95 backdrop-blur-md border border-white/10 p-1 rounded shadow-xl">
+        {/* Right: Map Action Controls */}
+        <div className="pointer-events-auto flex items-center space-x-1 shrink-0">
           {/* Thermal Heatmap Toggle */}
           <button
             onClick={() => setShowHeatmap(!showHeatmap)}
-            className={`flex items-center space-x-1 px-2 py-1 rounded border shadow text-xs font-mono transition ${
+            className={`flex items-center space-x-1 px-2 py-0.5 rounded border text-xs font-mono transition ${
               showHeatmap
-                ? 'bg-rose-500/20 text-rose-300 border-rose-500/50 font-bold'
-                : 'bg-[#141824]/90 text-slate-300 border-white/10 hover:text-amber-300'
+                ? 'bg-rose-500/20 text-rose-300 border-rose-500/50 font-bold shadow-[0_0_8px_rgba(244,63,94,0.3)]'
+                : 'bg-[#141824]/90 text-slate-300 border-white/10 hover:text-amber-300 hover:border-amber-500/40'
             }`}
             title="Toggle Thermal Heatmap Layer"
           >
@@ -456,10 +458,10 @@ export const LiveMap: React.FC<LiveMapProps> = ({ data, onSelectIncident }) => {
           {/* Hazard Exclusion Toggle */}
           <button
             onClick={() => setShowHazards(!showHazards)}
-            className={`flex items-center space-x-1 px-2 py-1 rounded border shadow text-xs font-mono transition ${
+            className={`flex items-center space-x-1 px-2 py-0.5 rounded border text-xs font-mono transition ${
               showHazards
-                ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 font-bold'
-                : 'bg-[#141824]/90 text-slate-400 border-white/10 hover:text-amber-300'
+                ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 font-bold shadow-[0_0_8px_rgba(245,158,11,0.3)]'
+                : 'bg-[#141824]/90 text-slate-400 border-white/10 hover:text-amber-300 hover:border-amber-500/40'
             }`}
             title="Toggle Hazard Exclusion Zones"
           >
@@ -470,7 +472,7 @@ export const LiveMap: React.FC<LiveMapProps> = ({ data, onSelectIncident }) => {
           {/* Tactical / Satellite Toggle */}
           <button
             onClick={toggleMapLayer}
-            className="flex items-center space-x-1 px-2 py-1 rounded bg-[#141824]/90 border border-white/10 text-slate-300 hover:text-amber-300 hover:border-amber-500/60 shadow text-xs font-mono transition"
+            className="flex items-center space-x-1 px-2 py-0.5 rounded bg-[#141824]/90 border border-white/10 text-slate-300 hover:text-amber-300 hover:border-amber-500/40 text-xs font-mono transition"
             title="Toggle Satellite Imagery / Tactical Map"
           >
             <Globe className="w-3.5 h-3.5 text-amber-400" />
@@ -481,14 +483,14 @@ export const LiveMap: React.FC<LiveMapProps> = ({ data, onSelectIncident }) => {
 
           <button
             onClick={recenterOnDrone}
-            className="p-1.5 rounded bg-[#141824]/90 border border-white/10 text-slate-300 hover:text-amber-300 hover:border-amber-500/60 shadow transition"
+            className="p-1 rounded bg-[#141824]/90 border border-white/10 text-slate-300 hover:text-amber-300 hover:border-amber-500/40 shadow transition"
             title="Center on REC-01 Drone"
           >
             <Crosshair className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={fitBoundsToSector}
-            className="p-1.5 rounded bg-[#141824]/90 border border-white/10 text-slate-300 hover:text-amber-300 hover:border-amber-500/60 shadow transition"
+            className="p-1 rounded bg-[#141824]/90 border border-white/10 text-slate-300 hover:text-amber-300 hover:border-amber-500/40 shadow transition"
             title="Fit Search Sector"
           >
             <Maximize2 className="w-3.5 h-3.5" />

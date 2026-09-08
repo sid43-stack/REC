@@ -485,7 +485,7 @@ export class DroneSimulator {
     
     const sitrep = `# REC TACTICAL SITUATION REPORT (SITREP)
 **GENERATED:** ${new Date().toISOString()}
-**CALLSIGN:** REC-01 TACTICAL GCS (TEAM FUKREY TECHIES)
+**CALLSIGN:** REC-01 TACTICAL GCS
 **OPERATION:** ${this.state.searchSector.name}
 **SCENARIO:** ${DRILL_SCENARIOS[this.state.activeScenario].title}
 

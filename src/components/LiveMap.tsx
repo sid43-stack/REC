@@ -423,79 +423,84 @@ export const LiveMap: React.FC<LiveMapProps> = ({ data, onSelectIncident }) => {
 
   return (
     <div className="relative w-full h-full bg-[#080a0f] rounded-lg border border-white/10 overflow-hidden flex flex-col tactical-corner">
-      {/* Map Header Overlay */}
-      <div className="absolute top-2.5 left-2.5 z-[400] flex items-center space-x-2 bg-[#0d1017]/95 backdrop-blur border border-white/10 px-3 py-1 rounded shadow-lg">
-        <Navigation className="w-3.5 h-3.5 text-amber-400" />
-        <span className="text-xs font-mono font-semibold tracking-wider text-slate-200">
-          SURVEILLANCE GRID: <span className="text-amber-400">{searchSector.name}</span>
-        </span>
-        <span className="text-slate-600">|</span>
-        <span className="text-[11px] font-mono text-slate-400">
-          COVERAGE: <strong className="text-slate-200">{searchSector.areaCoveredPercent}%</strong>
-        </span>
-      </div>
+      {/* Map Top Bar Controls Overlay - Unified, Non-overlapping, pinned inside map with z-[2000] */}
+      <div className="absolute top-2.5 left-2.5 right-2.5 z-[2000] pointer-events-none flex items-center justify-between gap-2">
+        {/* Left: Surveillance Grid Info */}
+        <div className="pointer-events-auto flex items-center space-x-2 bg-[#0d1017]/95 backdrop-blur-md border border-white/10 px-2.5 py-1 rounded shadow-xl min-w-0 max-w-[48%]">
+          <Navigation className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+          <span className="text-xs font-mono font-semibold tracking-wider text-slate-200 truncate">
+            GRID: <span className="text-amber-400 font-bold">{searchSector.name}</span>
+          </span>
+          <span className="text-slate-600 hidden md:inline shrink-0">|</span>
+          <span className="text-[11px] font-mono text-slate-400 hidden md:inline shrink-0">
+            COV: <strong className="text-slate-200">{searchSector.areaCoveredPercent}%</strong>
+          </span>
+        </div>
 
-      {/* Map Action Floating Controls */}
-      <div className="absolute top-2.5 right-2.5 z-[400] flex items-center space-x-1.5">
-        {/* Thermal Heatmap Toggle */}
-        <button
-          onClick={() => setShowHeatmap(!showHeatmap)}
-          className={`flex items-center space-x-1 px-2 py-1 rounded border shadow text-xs font-mono transition ${
-            showHeatmap
-              ? 'bg-rose-500/20 text-rose-300 border-rose-500/50 font-bold'
-              : 'bg-[#0d1017]/95 text-slate-300 border-white/10 hover:text-amber-300'
-          }`}
-          title="Toggle Thermal Heatmap Layer"
-        >
-          <Flame className="w-3.5 h-3.5 text-rose-400" />
-          <span>HEATMAP</span>
-        </button>
+        {/* Right: Map Action Floating Controls */}
+        <div className="pointer-events-auto flex items-center space-x-1 shrink-0 bg-[#0d1017]/95 backdrop-blur-md border border-white/10 p-1 rounded shadow-xl">
+          {/* Thermal Heatmap Toggle */}
+          <button
+            onClick={() => setShowHeatmap(!showHeatmap)}
+            className={`flex items-center space-x-1 px-2 py-1 rounded border shadow text-xs font-mono transition ${
+              showHeatmap
+                ? 'bg-rose-500/20 text-rose-300 border-rose-500/50 font-bold'
+                : 'bg-[#141824]/90 text-slate-300 border-white/10 hover:text-amber-300'
+            }`}
+            title="Toggle Thermal Heatmap Layer"
+          >
+            <Flame className="w-3.5 h-3.5 text-rose-400" />
+            <span className="hidden sm:inline">HEATMAP</span>
+          </button>
 
-        {/* Hazard Exclusion Toggle */}
-        <button
-          onClick={() => setShowHazards(!showHazards)}
-          className={`flex items-center space-x-1 px-2 py-1 rounded border shadow text-xs font-mono transition ${
-            showHazards
-              ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 font-bold'
-              : 'bg-[#0d1017]/95 text-slate-400 border-white/10 hover:text-amber-300'
-          }`}
-          title="Toggle Hazard Exclusion Zones"
-        >
-          <AlertOctagon className="w-3.5 h-3.5 text-amber-400" />
-          <span>HAZARDS</span>
-        </button>
+          {/* Hazard Exclusion Toggle */}
+          <button
+            onClick={() => setShowHazards(!showHazards)}
+            className={`flex items-center space-x-1 px-2 py-1 rounded border shadow text-xs font-mono transition ${
+              showHazards
+                ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 font-bold'
+                : 'bg-[#141824]/90 text-slate-400 border-white/10 hover:text-amber-300'
+            }`}
+            title="Toggle Hazard Exclusion Zones"
+          >
+            <AlertOctagon className="w-3.5 h-3.5 text-amber-400" />
+            <span className="hidden sm:inline">HAZARDS</span>
+          </button>
 
-        {/* Tactical / Satellite Toggle */}
-        <button
-          onClick={toggleMapLayer}
-          className="flex items-center space-x-1 px-2 py-1 rounded bg-[#0d1017]/95 backdrop-blur border border-white/10 text-slate-300 hover:text-amber-300 hover:border-amber-500/60 shadow text-xs font-mono transition"
-          title="Toggle Satellite Imagery / Tactical Map"
-        >
-          <Globe className="w-3.5 h-3.5 text-amber-400" />
-          <span>{mapMode === 'tactical' ? 'SATELLITE' : 'TACTICAL'}</span>
-        </button>
+          {/* Tactical / Satellite Toggle */}
+          <button
+            onClick={toggleMapLayer}
+            className="flex items-center space-x-1 px-2 py-1 rounded bg-[#141824]/90 border border-white/10 text-slate-300 hover:text-amber-300 hover:border-amber-500/60 shadow text-xs font-mono transition"
+            title="Toggle Satellite Imagery / Tactical Map"
+          >
+            <Globe className="w-3.5 h-3.5 text-amber-400" />
+            <span className="hidden sm:inline">{mapMode === 'tactical' ? 'SATELLITE' : 'TACTICAL'}</span>
+          </button>
 
-        <button
-          onClick={recenterOnDrone}
-          className="p-1.5 rounded bg-[#0d1017]/95 backdrop-blur border border-white/10 text-slate-300 hover:text-amber-300 hover:border-amber-500/60 shadow transition"
-          title="Center on REC-01 Drone"
-        >
-          <Crosshair className="w-3.5 h-3.5" />
-        </button>
-        <button
-          onClick={fitBoundsToSector}
-          className="p-1.5 rounded bg-[#0d1017]/95 backdrop-blur border border-white/10 text-slate-300 hover:text-amber-300 hover:border-amber-500/60 shadow transition"
-          title="Fit Search Sector"
-        >
-          <Maximize2 className="w-3.5 h-3.5" />
-        </button>
+          <div className="w-[1px] h-4 bg-white/10 mx-0.5" />
+
+          <button
+            onClick={recenterOnDrone}
+            className="p-1.5 rounded bg-[#141824]/90 border border-white/10 text-slate-300 hover:text-amber-300 hover:border-amber-500/60 shadow transition"
+            title="Center on REC-01 Drone"
+          >
+            <Crosshair className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={fitBoundsToSector}
+            className="p-1.5 rounded bg-[#141824]/90 border border-white/10 text-slate-300 hover:text-amber-300 hover:border-amber-500/60 shadow transition"
+            title="Fit Search Sector"
+          >
+            <Maximize2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
 
       {/* Map Canvas */}
       <div ref={mapContainerRef} className="w-full h-full flex-1 z-10" />
 
       {/* Map Legend Overlay in bottom-left */}
-      <div className="absolute bottom-2.5 left-2.5 z-[400] px-2.5 py-1 rounded bg-[#090b10]/95 backdrop-blur border border-white/10 text-[10px] font-mono flex items-center space-x-3 text-slate-400 shadow">
+      <div className="absolute bottom-2.5 left-2.5 z-[2000] pointer-events-none px-2.5 py-1 rounded bg-[#090b10]/95 backdrop-blur border border-white/10 text-[10px] font-mono flex items-center space-x-3 text-slate-400 shadow">
         <div className="flex items-center space-x-1">
           <span className="w-2 h-2 rounded-full bg-amber-400" />
           <span>REC-01 UAV</span>

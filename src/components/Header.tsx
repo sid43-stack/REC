@@ -101,10 +101,10 @@ export const Header: React.FC<HeaderProps> = ({
                 </span>
               </h1>
             </div>
-            <div className="text-[11px] text-slate-400 font-mono flex items-center space-x-2">
-              <span>TEAM: <strong className="text-amber-300/90 font-semibold">FUKREY TECHIES</strong></span>
+            <div className="text-[10px] text-slate-400 font-mono flex items-center space-x-2">
+              <span className="text-amber-400/90 font-semibold">AUTONOMOUS MULTI-SENSOR SURVIVOR LOCALIZATION</span>
               <span className="text-slate-600">•</span>
-              <span className="text-slate-300">Siddharth Goyal & Kartik Wadhwa</span>
+              <span className="text-slate-400">GROUND CONTROL STATION</span>
             </div>
           </div>
         </div>

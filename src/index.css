@@ -42,6 +42,32 @@
   background: #3e4659;
 }
 
+/* Explicit high-visibility tactical scrollbar for queue lists */
+.tactical-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #3e4659 rgba(10, 14, 22, 0.8);
+}
+
+.tactical-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.tactical-scroll::-webkit-scrollbar-track {
+  background: rgba(8, 11, 18, 0.9);
+  border-radius: 3px;
+}
+
+.tactical-scroll::-webkit-scrollbar-thumb {
+  background: #3a4253;
+  border-radius: 3px;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.tactical-scroll::-webkit-scrollbar-thumb:hover {
+  background: #f59e0b;
+}
+
 /* Glassmorphism Cards */
 .tactical-glass {
   background: rgba(13, 16, 23, 0.88);

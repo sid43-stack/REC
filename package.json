@@ -2,7 +2,7 @@
   "name": "rec",
   "version": "1.0.0",
   "type": "module",
-  "description": "**Team:** Fukrey Techies   **Team Members:** Siddharth Goyal, Kartik Wadhwa",
+  "description": "REC — Rapid Emergency & Crisis-response Drone Command Center",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

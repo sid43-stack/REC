@@ -241,7 +241,7 @@ export const App: React.FC = () => {
             <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
             <span className="text-slate-300 font-semibold">REC COMMAND CENTER</span>
             <span className="text-slate-600">•</span>
-            <span className="text-amber-300/80">FUKREY TECHIES</span>
+            <span className="text-amber-300/80">REC-SVLP PROTOCOL</span>
             <span className="text-slate-600">•</span>
             <span>SECTOR ALPHA DRILL</span>
           </div>

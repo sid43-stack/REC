@@ -10,9 +10,6 @@
 
 **Autonomous Drone Ground Control Station (GCS) & Multi-Sensor Survivor Verification Protocol (REC-SVLP)**
 
-*Built by Team Fukrey Techies*  
-**Team Members:** Siddharth Goyal, Kartik Wadhwa
-
 </div>
 
 ---
@@ -136,13 +133,6 @@ All design and engineering specifications are included in the repository:
 7. [`07_REC_SVLP_SPECIFICATION.md`](07_REC_SVLP_SPECIFICATION.md) — Survivor Verification Protocol
 8. [`08_MVP_ROADMAP.md`](08_MVP_ROADMAP.md) — MVP Scope & Development Roadmap
 9. [`09_HARDWARE_INTEGRATION_PLAN.md`](09_HARDWARE_INTEGRATION_PLAN.md) — Physical Drone & Sensor Hardware Integration
-
----
-
-## 👥 Team Fukrey Techies
-
-- **Siddharth Goyal**
-- **Kartik Wadhwa**
 
 ---
 

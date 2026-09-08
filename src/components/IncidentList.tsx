@@ -79,9 +79,9 @@ export const IncidentList: React.FC<IncidentListProps> = ({
   }
 
   return (
-    <div className="tactical-glass rounded-lg border border-white/10 p-3 flex flex-col space-y-2.5 h-full shadow-xl tactical-corner overflow-hidden">
+    <div className="tactical-glass rounded-lg border border-white/10 p-2.5 flex flex-col gap-1.5 h-full shadow-xl tactical-corner overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-white/10 pb-2 shrink-0">
+      <div className="flex items-center justify-between border-b border-white/10 pb-1.5 shrink-0">
         <div className="flex items-center space-x-2">
           <div className="p-1 rounded bg-rose-500/15 border border-rose-500/30 text-rose-400">
             <AlertTriangle className="w-3.5 h-3.5" />
@@ -99,7 +99,7 @@ export const IncidentList: React.FC<IncidentListProps> = ({
         {/* SITREP Export Button */}
         <button
           onClick={handleExportSITREP}
-          className={`flex items-center space-x-1 px-2.5 py-1 rounded text-[10px] font-mono font-bold transition border ${
+          className={`flex items-center space-x-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold transition border ${
             sitrepCopied
               ? 'bg-emerald-600/30 text-emerald-300 border-emerald-500/50'
               : 'bg-gradient-to-r from-amber-600/30 to-orange-500/30 text-amber-300 border-amber-500/40 hover:border-amber-400'
@@ -134,7 +134,7 @@ export const IncidentList: React.FC<IncidentListProps> = ({
       </div>
 
       {/* Incident Cards Scroll Area */}
-      <div className="space-y-2.5 overflow-y-auto flex-1 pr-1 min-h-0">
+      <div className="space-y-2 overflow-y-auto flex-1 pr-1.5 min-h-0 tactical-scroll">
         {filteredIncidents.map((incident) => {
           const isResolved = incident.status === 'RESOLVED';
           const isCritical = incident.priority === 'CRITICAL';

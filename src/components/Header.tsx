@@ -184,7 +184,7 @@ export const Header: React.FC<HeaderProps> = ({
               <Radio className="w-3 h-3 text-amber-400 animate-pulse" />
               <span className="text-slate-400 text-[10px]">MODE:</span>
               <span className="text-amber-300 font-bold text-[11px]">
-                {missionMode.replace('_', ' ')}
+                {missionMode.replace(/_/g, ' ')}
               </span>
               <ChevronDown className="w-3 h-3 text-amber-400" />
             </button>

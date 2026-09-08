@@ -25,6 +25,11 @@ export const GimbalCameraModal: React.FC<GimbalCameraModalProps> = ({
 
   if (!isOpen) return null;
 
+  const getCompassDir = (deg: number): string => {
+    const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+    return dirs[Math.round(((deg % 360 + 360) % 360) / 45) % 8];
+  };
+
   return (
     <div className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-6 bg-black/90 backdrop-blur-md animate-in fade-in duration-200">
       <div className="relative w-full max-w-5xl bg-[#0b0d13] border border-white/10 rounded-xl overflow-hidden shadow-2xl flex flex-col h-[85vh]">
@@ -96,7 +101,7 @@ export const GimbalCameraModal: React.FC<GimbalCameraModalProps> = ({
         </div>
 
         {/* Video Canvas / Screen Area */}
-        <div className="relative flex-1 bg-black overflow-hidden flex items-center justify-center select-none">
+        <div className="relative flex-1 bg-black overflow-hidden flex items-center justify-center select-none gimbal-scanlines">
           {/* Background Feed Image */}
           <div 
             className={`absolute inset-0 bg-center bg-cover transition-all duration-300 ${
@@ -136,11 +141,11 @@ export const GimbalCameraModal: React.FC<GimbalCameraModalProps> = ({
                 <div className="text-[10px] text-slate-300">AGC: DYNAMIC AUTO • 60 FPS</div>
               </div>
 
-              <div className="bg-black/60 backdrop-blur-sm p-2 rounded border border-white/10 text-right space-y-1">
-                <div className="text-emerald-400 font-bold">DATE: {new Date().toLocaleDateString()}</div>
-                <div>UTC: {new Date().toLocaleTimeString()}</div>
-                <div>ALT: {telemetry.altitude.toFixed(1)}m AGL</div>
-                <div className="text-[10px] text-slate-300">POS: {telemetry.latitude.toFixed(5)}°N, {telemetry.longitude.toFixed(5)}°E</div>
+              <div className="bg-black/60 backdrop-blur-sm p-2 rounded border border-white/10 text-right space-y-1 max-w-[200px]">
+                <div className="text-emerald-400 font-bold text-[11px]">{new Date().toLocaleDateString()}</div>
+                <div className="text-[11px]">UTC: {new Date().toLocaleTimeString()}</div>
+                <div className="text-[11px]">ALT: {telemetry.altitude.toFixed(1)}m AGL</div>
+                <div className="text-[10px] text-slate-300 truncate">POS: {telemetry.latitude.toFixed(4)}°N, {telemetry.longitude.toFixed(4)}°E</div>
               </div>
             </div>
 
@@ -181,7 +186,7 @@ export const GimbalCameraModal: React.FC<GimbalCameraModalProps> = ({
 
               <div className="bg-black/60 backdrop-blur-sm px-2.5 py-1.5 rounded border border-white/10 flex items-center space-x-2">
                 <span>COMPASS:</span>
-                <span className="text-amber-300 font-bold">{telemetry.heading}° N</span>
+                <span className="text-amber-300 font-bold">{telemetry.heading}° {getCompassDir(telemetry.heading)}</span>
               </div>
             </div>
           </div>

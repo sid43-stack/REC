@@ -11,8 +11,19 @@ export function useRECData(): {
   useEffect(() => {
     // Start simulation when mounted
     const unsubscribe = recDataService.subscribe((state) => {
-      // Create a shallow copy to trigger re-renders reliably
-      setData({ ...state });
+      // Deep-clone critical nested objects that the simulator mutates in-place,
+      // so React's Object.is comparison detects changes and re-renders components.
+      setData({
+        ...state,
+        telemetry: { ...state.telemetry },
+        companionTelemetry: { ...state.companionTelemetry },
+        sensorEvidence: { ...state.sensorEvidence },
+        svlpEvaluation: { ...state.svlpEvaluation },
+        flightPath: [...state.flightPath],
+        companionFlightPath: [...state.companionFlightPath],
+        incidents: [...state.incidents],
+        hotspots: [...state.hotspots],
+      });
     });
 
     return () => {

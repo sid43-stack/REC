@@ -370,7 +370,7 @@ export class DroneSimulator {
   public setMissionMode(mode: MissionMode): void {
     this.state.missionMode = mode;
     
-    let details = `Flight mode manually updated to ${mode.replace('_', ' ')}.`;
+    let details = `Flight mode manually updated to ${mode.replace(/_/g, ' ')}.`;
     if (mode === 'RETURN_TO_HOME') {
       details = 'Return-to-Home engaged. Drone vectoring to base waypoint at 40m altitude.';
       this.state.telemetry.altitude = 40.0;
@@ -393,7 +393,7 @@ export class DroneSimulator {
       id: `EVT-MODE-${Date.now()}`,
       timestamp: new Date().toISOString(),
       type: 'INFO',
-      title: `Flight Mode: ${mode.replace('_', ' ')}`,
+      title: `Flight Mode: ${mode.replace(/_/g, ' ')}`,
       details,
       relatedCoordinates: {
         latitude: this.state.telemetry.latitude,

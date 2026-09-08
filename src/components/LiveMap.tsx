@@ -256,7 +256,7 @@ export const LiveMap: React.FC<LiveMapProps> = ({ data, onSelectIncident }) => {
             <span>⚠ GEOFENCED HAZARD:</span>
             <span>${hz.name}</span>
           </div>
-          <div class="text-[10px] text-amber-300 mb-1">SEVERITY: ${hz.severity} (${hz.type.replace('_', ' ')})</div>
+          <div class="text-[10px] text-amber-300 mb-1">SEVERITY: ${hz.severity} (${hz.type.replace(/_/g, ' ')})</div>
           <div class="text-slate-300 text-[11px]">${hz.description}</div>
         </div>
       `);

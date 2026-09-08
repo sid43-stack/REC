@@ -129,7 +129,7 @@ export const SVLPIntelligencePanel: React.FC<SVLPIntelligencePanelProps> = ({
             v1.0
           </span>
           <span className="text-[9px] font-mono text-cyan-300 hidden sm:inline truncate">
-            • “REC investigates.”
+            • "{state === 'SEARCH' ? 'REC scans.' : state === 'SUSPICION' ? 'Anomaly detected.' : state === 'INVESTIGATION' ? 'REC investigates.' : state === 'VERIFICATION' ? 'Verifying target.' : state === 'ALERT' ? 'SURVIVOR CONFIRMED.' : 'Returning to base.'}"
           </span>
         </div>
 

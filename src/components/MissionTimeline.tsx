@@ -114,7 +114,7 @@ export const MissionTimeline: React.FC<MissionTimelineProps> = ({ events }) => {
       </div>
 
       {/* Events List */}
-      <div className="space-y-2.5 overflow-y-auto max-h-[500px] pr-1 font-mono text-xs">
+      <div className="space-y-2.5 overflow-y-auto flex-1 min-h-0 pr-1 font-mono text-xs tactical-scroll">
         {filteredEvents.map((evt, idx) => (
           <div key={evt.id || idx} className="relative pl-6 pb-2 border-l border-white/10 last:border-l-0">
             {/* Timeline node circle */}
